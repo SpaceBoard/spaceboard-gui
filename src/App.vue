@@ -1,12 +1,9 @@
 <template>
   <div id="app">
     <header>
-      <span>Vue.js PWA</span>
+      <span>SpaceBoard</span>
     </header>
-    <main>
-      <img src="./assets/logo.png" alt="Vue.js PWA">
-      <router-view></router-view>
-    </main>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -17,8 +14,10 @@ export default {
 </script>
 
 <style>
+html,
 body {
   margin: 0;
+  height: 100%;
 }
 
 #app {
@@ -26,11 +25,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-}
-
-main {
-  text-align: center;
-  margin-top: 40px;
+  height: 100%;
 }
 
 header {
