@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <header>
-      <span>SpaceBoard</span>
+      <span>SpaceBoard by loklok and k2.digital</span>
     </header>
     <router-view></router-view>
   </div>

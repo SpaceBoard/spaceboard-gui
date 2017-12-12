@@ -11,44 +11,42 @@
     </div>
   </div>
   <div class="canvas-area">
-    <div class="canvas-wrapper" ref="canvas-wrapper">
+    <div class="canvas-wrapper" ref="canvas-wrapper" v-touch:pan="onPanCam" v-touch:pinch="onZoom">
 
-      <Positioner
-        :view="view"
-        :xcam="camX"
-        :ycam="camY"
+      <span v-if="root[using].items">
+        <span
 
-        :deep="0"
-        :xpos="10"
-        :ypos="10"
-        :scaler="scaler"
-      >
-        <div :style="{
-          color: 'red',
-          width: '100px',
-          height: '100px',
-          background: 'white',
-          border: 'black solid 1px'
-        }">123</div>
-      </Positioner>
-      <Positioner
-        :view="view"
-        :xcam="camX"
-        :ycam="camY"
+          :key="iBoxType"
+          v-for="(boxType, iBoxType) in okeys(root[using].items)"
+        >
+          <Positioner
+            :view="view"
+            :xcam="camX"
+            :ycam="camY"
+            :width="box.size.width"
+            :height="box.size.height"
+            :deep="box.pos.z"
+            :xpos="box.pos.x"
+            :ypos="box.pos.y"
+            :scaler="scaler"
+            :pannerStart="() => { handleItemDraggerStart() }"
+            :pannerEnd="() => { handleItemDraggerEnd() }"
+            :panner="(evt) => { handleItemDragger({ item: box, evt }) }"
+            :key="iBox"
+            v-for="(box, iBox) in root[using].items[boxType]"
+          >
+            <div :style="{
+              color: 'red',
+              width: '200px',
+              height: '200px',
+              background: 'white',
+              border: 'black solid 1px'
+            }">123</div>
+          </Positioner>
+        </span>
+      </span>
 
-        :deep="0"
-        :xpos="100"
-        :ypos="100"
-        :scaler="scaler"
-      >
-        <div :style="{
-          color: 'red',
-          width: '100px',
-          height: '100px',
-          background: 'white',
-          border: 'black solid 1px'
-        }">123</div>
-      </Positioner>
+
 
     </div>
   </div>
@@ -60,6 +58,7 @@
 </template>
 
 <script>
+import * as Data from '@/components/parts/Editor/Data/DataStructure.js'
 import Positioner from '@/components/parts/Editor/Positioner/Positioner.vue'
 import UIEvents from '@/components/parts/Editor/UIEvents/UIEvents.js'
 
@@ -69,6 +68,14 @@ export default {
   },
   data () {
     return {
+      okeys: Object.keys,
+      using: 'realtime',
+      root: {
+        realtime: {},
+        timetravel: {},
+        timemachine: []
+      },
+
       camStack: {},
       camapis: false,
       view: {
@@ -78,13 +85,21 @@ export default {
         y1: window.innerHeight - 56
       },
       cam: {
+        pause: false,
+        _dx: 0,
+        _dy: 0,
         _x: 0,
         _y: 0,
         x: 0,
         y: 0
       },
       scaler: 1.0,
-      isOpen: false
+      scaleState: {
+        ts: 0,
+        ds: 0
+      },
+      isOpen: false,
+      inertia: 1.0
     }
   },
   computed: {
@@ -95,16 +110,68 @@ export default {
       return this.cam._y / this.scaler
     }
   },
+  methods: {
+    handleItemDraggerStart () {
+      this.cam.pause = true
+    },
+    handleItemDraggerEnd () {
+      this.cam.pause = false
+    },
+    handleItemDragger ({ item, evt }) {
+      var factor = (window.navigator.userAgent.indexOf('Chrome') !== -1) ? 1.0 : 0.5
+      item.pos.x += evt.velocityX * (16.6667) * factor
+      item.pos.y += evt.velocityY * (16.6667) * factor
+
+      this.inertia = 0.0
+      this.cam._dx = 0.0
+      this.cam._dy = 0.0
+    },
+    onZoom (evt) {
+      this.scaler = evt.scale
+      this.cam._dx = 0
+      this.cam._dy = 0
+    },
+    onPanCam (evt) {
+      if (this.cam.pause) { return }
+      var factor = (window.navigator.userAgent.indexOf('Chrome') !== -1) ? 1.0 : 0.5
+      this.cam._dx = evt.velocityX * (16.6667) * factor
+      this.cam._dy = evt.velocityY * (16.6667) * factor
+
+      this.inertia = 1.1
+    }
+  },
   mounted () {
-    this.camapis = UIEvents({ target: this.$refs['canvas-wrapper'], stack: this.camStack })
-    this.camStack.onPanCam = ({ type, deltaX, deltaY }) => {
-      if (type === 'inertia') {
-        this.cam._x += this.camapis.state.dx
-        this.cam._y += this.camapis.state.dy
+    setTimeout(() => {
+      this.root[this.using] = {
+        attention: {
+          x: 150,
+          y: 150
+        },
+        items: {
+          textBoxes: [
+            Data.textBox({ pos: { x: 10, y: 10, z: 0 } }),
+            Data.textBox({ pos: { x: 110, y: 110, z: 0 } })
+          ]
+        }
       }
+      this.cam._x = this.root[this.using].attention.x
+      this.cam._y = this.root[this.using].attention.y
+    }, 500)
+    var self = this
+    function rAF () {
+      if (self.inertia > 0.0001) {
+        self.cam._x += self.cam._dx * self.inertia
+        self.cam._y += self.cam._dy * self.inertia
+      }
+      self.inertia *= 0.97
+      self.rAFID = window.requestAnimationFrame(rAF)
+    }
+    this.rAFID = window.requestAnimationFrame(rAF)
+    this.camapis = UIEvents({ target: this.$refs['canvas-wrapper'], stack: this.camStack })
+    this.camStack.onPanCamCam = ({ type, deltaX, deltaY }) => {
       if (type === 'wheel') {
-        this.cam._x -= deltaX / this.scaler
-        this.cam._y -= deltaY / this.scaler
+        this.cam._x -= (deltaX / this.scaler)
+        this.cam._y -= (deltaY / this.scaler)
       }
     }
     window.addEventListener('resize', () => {
@@ -124,13 +191,15 @@ export default {
 
 <style scoped>
 .scale-ranger{
+  margin-left: 30px;
+  height: 36px;
   width: 250px;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   border: 1px solid #000000;
-  height: 36px;
-  width: 16px;
+  height: 24px;
+  width: 24px;
   border-radius: 3px;
   transform: scale(2.0);
   background: #ffffff;

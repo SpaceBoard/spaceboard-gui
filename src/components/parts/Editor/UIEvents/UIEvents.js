@@ -19,12 +19,12 @@ export default ({ target, stack }) => {
   }
 
   mod.sendEvent = (args) => {
-    if (args.type === 'ts') {
-      mod.proc.ts(args)
-    }
-    if (args.type === 'tm') {
-      mod.proc.tm(args)
-    }
+    // if (args.type === 'ts') {
+    //   mod.proc.ts(args)
+    // }
+    // if (args.type === 'tm') {
+    //   mod.proc.tm(args)
+    // }
     for (var key in stack) {
       stack[key](args)
     }

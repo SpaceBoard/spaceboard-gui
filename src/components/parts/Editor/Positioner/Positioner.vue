@@ -7,14 +7,33 @@
   top: '0px',
   left: '0px',
   width: width + 'px',
-  height: height + 'px',
-  color: 'red'
-}"><slot></slot></div>
+  height: height + 'px'
+}"><slot></slot>
+  <div class="handler"
+  :style="{
+    position: 'absolute',
+    top: '0px',
+    left: '0px',
+    transformOrigin: '0% 0%',
+    transform: 'perspective(100vmax) translate3d(' + (-40) + 'px,' + (-40) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
+  }"
+  v-touch:panend="pannerEnd"
+  v-touch:panstart="pannerStart"
+  v-touch:pan="panner">
+    <img src="./img/mover.svg" class="mover" />
+  </div>
+</div>
 </template>
 
 <script>
 export default {
   props: {
+    pannerStart: {
+      default () { return () => {} }
+    },
+    pannerEnd: {
+      default () { return () => {} }
+    },
     deep: {
       default: 1.0
     },
@@ -26,6 +45,11 @@ export default {
           x1: window.innerWidth - 300,
           y1: window.innerHeight - 56
         }
+      }
+    },
+    panner: {
+      default () {
+        return () => {}
       }
     },
     ycam: {
@@ -65,7 +89,11 @@ export default {
       var x1 = (this.readXPos + this.width * this.scaler)
       var y1 = (this.readYPos + this.height * this.scaler)
 
+      var x2 = x0 + this.width * this.scaler
+      var y2 = y0 + this.height * this.scaler
+
       if (
+        (x2 < 0 || y2 < 0) ||
         (x0 > view.x1 || y0 > view.y1) ||
         (x1 < view.x0 || y1 < view.y0)
       ) {
@@ -85,6 +113,19 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+.handler{
+  width: 45px;
+  height: 45px;
+  background-color: white;
+  border: grey solid 1px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mover{
+  width: 30px;
+  height: 30px;
+}
 </style>
