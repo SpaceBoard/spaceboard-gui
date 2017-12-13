@@ -57,7 +57,9 @@ export default {
           x0: 0,
           y0: 0,
           x1: window.innerWidth - 300,
-          y1: window.innerHeight - 56
+          y1: window.innerHeight - 56,
+          offsetX: 300,
+          offsetY: 56
         }
       }
     },

@@ -23,8 +23,19 @@ export function uuid () {
   return firstPart + secondPart
 }
 
-export function drawboard () {
-
+export function drawboard (config = {}) {
+  var size = require('../Drawboard/Drawboard.vue').default.info.size
+  return {
+    id: uuid(),
+    ...positioner(),
+    size,
+    arrayName: 'drawboards',
+    component: 'Drawboard',
+    data: {
+      lines: []
+    },
+    ...config
+  }
 }
 
 export function textBox (configFn) {

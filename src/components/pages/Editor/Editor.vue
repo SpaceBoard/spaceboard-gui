@@ -29,6 +29,7 @@
             <component
               v-bind:is="box.component"
               :box="box"
+              :view="view"
               :style="{
                 width: box.size.width + 'px',
                 height: box.size.height + 'px',
@@ -83,6 +84,7 @@
 import * as Data from '@/components/parts/Editor/Data/DataStructure.js'
 import Positioner from '@/components/parts/Editor/Positioner/Positioner.vue'
 import SourceButton from '@/components/parts/Editor/SourceButton/SourceButton.vue'
+import Drawboard from '@/components/parts/Editor/Drawboard/Drawboard.vue'
 import TextBox from '@/components/parts/Editor/TextBox/TextBox.vue'
 import TWEEN from '@tweenjs/tween.js'
 
@@ -94,7 +96,8 @@ export default {
   components: {
     Positioner,
     SourceButton,
-    TextBox
+    TextBox,
+    Drawboard
   },
   data () {
     return {
@@ -119,7 +122,9 @@ export default {
         x0: 0,
         y0: 0,
         x1: window.innerWidth - 300,
-        y1: window.innerHeight - 56
+        y1: window.innerHeight - 56,
+        offsetX: 300,
+        offsetY: 56
       },
       cam: {
         pause: false,
@@ -261,6 +266,9 @@ export default {
           scaler: 1.0
         },
         items: {
+          drawboards: [
+            Data.drawboard({ pos: { x: 100, y: 500, z: 0 } })
+          ],
           textBoxes: [
             Data.textBox(() => { return { pos: { x: 150, y: 150, z: 0 } } }),
             Data.textBox(() => { return { pos: { x: 200, y: 200, z: 0 } } }),

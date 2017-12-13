@@ -3,6 +3,8 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import $ from 'webpack-zepto'
+window.$ = $
 
 Vue.config.productionTip = false
 
