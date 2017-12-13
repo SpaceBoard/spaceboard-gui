@@ -80,6 +80,7 @@ export default {
 }
 
 .dragger {
+  cursor: move;
   position: absolute;
   right: 10px;
   top: 10px;

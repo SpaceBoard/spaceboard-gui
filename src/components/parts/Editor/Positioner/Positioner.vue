@@ -8,7 +8,7 @@
   left: 0 + 'px',
   width: width + 'px',
   height: height + 'px'
-}"><slot></slot>
+}">
   <div class="handler"
   :style="{
     position: 'absolute',
@@ -20,7 +20,7 @@
   v-touch:panend="pannerEnd"
   v-touch:panstart="pannerStart"
   v-touch:pan="panner">
-    <img src="./img/mover.svg" class="mover" />
+    <img src="./img/mover.svg" class="mover" draggable="false" />
   </div>
 
   <div class="handler"
@@ -33,8 +33,9 @@
   }"
   v-touch:tap="() => { $emit('remove') }"
   >
-    <img src="./img/remover.svg" class="mover" />
+    <img src="./img/remover.svg" class="mover" draggable="false" />
   </div>
+  <slot></slot>
 </div>
 </template>
 
@@ -135,6 +136,7 @@ export default {
 
 <style scoped>
 .handler{
+  cursor: move;
   width: 45px;
   height: 45px;
   background-color: white;

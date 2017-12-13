@@ -1,10 +1,11 @@
 <template>
 <div class="wrapper">
   <div class="canvas-area">
-    <div class="canvas-wrapper" ref="canvas-wrapper" v-touch:pan="onPanCam" v-touch:pinch="onZoom" v-touch:pinchstart="onZoomStart" v-touch:pinchend="onZoomEnd">
+    <div class="canvas-wrapper" ref="canvas-wrapper">
+      <div class="canvas-toucher" v-touch:pan="onPanCam" ref="canvas-toucher" v-touch:pinch="onZoom" v-touch:pinchstart="onZoomStart" v-touch:pinchend="onZoomEnd"></div>
 
-      <span v-if="root[using].items">
-        <span
+      <div v-if="root[using].items">
+        <div
           :key="iBoxType"
           v-for="(boxType, iBoxType) in okeys(root[using].items)"
         >
@@ -25,16 +26,18 @@
             :key="iBox"
             v-for="(box, iBox) in root[using].items[boxType]"
           >
-              <div :style="{
-                color: 'red',
-                width: '200px',
-                height: '200px',
-                background: 'white',
-                border: 'black solid 1px'
-              }">{{ capLetter(box.component) }}</div>
+            <component
+              v-bind:is="box.component"
+              :box="box"
+              :style="{
+                width: box.size.width + 'px',
+                height: box.size.height + 'px',
+                border: 'grey solid 1px'
+              }"
+            ></component>
           </Positioner>
-        </span>
-      </span>
+        </div>
+      </div>
 
 
     </div>
@@ -80,7 +83,7 @@
 import * as Data from '@/components/parts/Editor/Data/DataStructure.js'
 import Positioner from '@/components/parts/Editor/Positioner/Positioner.vue'
 import SourceButton from '@/components/parts/Editor/SourceButton/SourceButton.vue'
-import UIEvents from '@/components/parts/Editor/UIEvents/UIEvents.js'
+import TextBox from '@/components/parts/Editor/TextBox/TextBox.vue'
 import TWEEN from '@tweenjs/tween.js'
 
 function capLetter (string) {
@@ -90,7 +93,8 @@ function capLetter (string) {
 export default {
   components: {
     Positioner,
-    SourceButton
+    SourceButton,
+    TextBox
   },
   data () {
     return {
@@ -111,8 +115,6 @@ export default {
       temp: {
         box: false
       },
-      camStack: {},
-      camapis: false,
       view: {
         x0: 0,
         y0: 0,
@@ -261,14 +263,20 @@ export default {
         items: {
           textBoxes: [
             Data.textBox(() => { return { pos: { x: 150, y: 150, z: 0 } } }),
-            Data.textBox(() => { return { pos: { x: 300, y: 500, z: 0 } } }),
-            Data.textBox(() => { return { pos: { x: 200, y: 200, z: 0 } } })
+            Data.textBox(() => { return { pos: { x: 200, y: 200, z: 0 } } }),
+            Data.textBox(() => { return { pos: { x: 300, y: 300, z: 0 } } })
           ]
         }
       }
+
+      this.zoomIntro()
+    },
+    zoomIntro () {
+      // zoom in
+      let tempScaler = this.root[this.using].attention.scaler
       this.root[this.using].attention.scaler = 0.1
       this.viewAttention({ instant: true })
-      this.root[this.using].attention.scaler = 1.0
+      this.root[this.using].attention.scaler = tempScaler
       this.viewAttention({ instant: false })
     },
     markCam () {
@@ -291,6 +299,11 @@ export default {
       this.viewAttention({})
     },
     viewAttention ({ instant }) {
+      // remove inertia.
+      this.inertia = 0.0
+      this.cam._dx = 0.0
+      this.cam._dy = 0.0
+
       if (instant) {
         this.cam._x = this.root[this.using].attention.x
         this.cam._y = this.root[this.using].attention.y
@@ -300,7 +313,7 @@ export default {
           _x: this.root[this.using].attention.x,
           _y: this.root[this.using].attention.y,
           scaler: this.root[this.using].attention.scaler
-        }, 500).easing(TWEEN.Easing.Quadratic.Out).start()
+        }, 700).easing(TWEEN.Easing.Quadratic.Out).start()
       }
     }
   },
@@ -319,13 +332,13 @@ export default {
       TWEEN.update()
     }
     this.rAFID = window.requestAnimationFrame(rAF)
-    this.camapis = UIEvents({ target: this.$refs['canvas-wrapper'], stack: this.camStack })
-    this.camStack.onPanCamCam = ({ type, deltaX, deltaY }) => {
-      if (type === 'wheel') {
-        this.cam._x -= (deltaX / this.scaler)
-        this.cam._y -= (deltaY / this.scaler)
-      }
-    }
+
+    this.$refs['canvas-wrapper'].addEventListener('wheel', (evt) => {
+      evt.preventDefault()
+      this.cam._x -= (evt.deltaX / this.scaler)
+      this.cam._y -= (evt.deltaY / this.scaler)
+    }, false)
+
     window.addEventListener('resize', () => {
       this.view = {
         x0: 0,
@@ -336,7 +349,6 @@ export default {
     })
   },
   beforeDestroy () {
-    // this.camapis.uninstall()
   }
 }
 </script>
@@ -401,6 +413,14 @@ input[type=range]::-webkit-slider-thumb {
   height: 100%;
 }
 
+.canvas-toucher {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+}
+
 .canvas-area{
   perspective: 100vmax;
   position: absolute;
@@ -417,6 +437,8 @@ input[type=range]::-webkit-slider-thumb {
   width: 100%;
   height: calc(100% - 56px * 0.0);
   transform: translateX(100%);
+  transition: transform 1s;
+  transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
   background-color: rgba(255,255,255,0.2);
 }
 .drawer.is-open{

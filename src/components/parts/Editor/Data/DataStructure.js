@@ -23,8 +23,12 @@ export function uuid () {
   return firstPart + secondPart
 }
 
+export function drawboard () {
+
+}
+
 export function textBox (configFn) {
-  var size = { width: 200, height: 200 }
+  var size = require('../TextBox/TextBox.vue').default.info.size
   configFn = configFn || (() => { return {} })
   return {
     id: uuid(),
@@ -32,6 +36,9 @@ export function textBox (configFn) {
     size,
     arrayName: 'textBoxes',
     component: 'TextBox',
+    data: {
+      text: `New Text`
+    },
     ...configFn({ size })
   }
 }
