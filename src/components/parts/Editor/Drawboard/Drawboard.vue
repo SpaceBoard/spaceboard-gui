@@ -40,6 +40,7 @@ function drawLines ({ ctx, canvas, lines }) {
 
 export default {
   props: {
+    cam: {},
     box: {},
     view: {}
   },
@@ -71,10 +72,10 @@ export default {
   },
   methods: {
     renderCanvas () {
-      var ctx = this.rendering.ctx
-      var canvas = this.$refs['canvava']
-      var lines = this.lines
       if (this.dirty) {
+        var ctx = this.rendering.ctx
+        var canvas = this.$refs['canvava']
+        var lines = this.lines
         drawLines({ ctx, canvas, lines })
         this.dirty = false
       }
@@ -107,11 +108,14 @@ export default {
     },
     panend (evt) {
       var old = this.lines[this.lines.length - 1].points.map(pt => [pt.x, pt.y])
-      var newPt = simplify(old, 0.0005)
+      var newPt = simplify(old, 0.00025)
       this.lines[this.lines.length - 1].points = newPt.map(pt => { return { x: pt[0], y: pt[1] } })
       console.log(this.lines)
 
       this.dirty = true
+      this.$emit('draw', {
+        box: this.box
+      })
     }
   },
   info: {
@@ -124,6 +128,6 @@ export default {
 .box{
   width: 100%;
   height: 100%;
-  background-color: white;
+  /* background-color: white; */
 }
 </style>

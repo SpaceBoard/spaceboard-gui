@@ -28,6 +28,7 @@
           >
             <component
               v-bind:is="box.component"
+              :cam="cam"
               :box="box"
               :view="view"
               :style="{
@@ -213,6 +214,12 @@ export default {
             }
           }))
           break
+        case 'drawboard':
+          this.root.realtime.items['drawboards'].push(
+            Data.drawboard({
+              pos: this.raycast({ rect })
+            })
+          )
       }
     },
     handleItemDraggerStart () {
