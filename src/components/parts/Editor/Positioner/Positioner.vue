@@ -2,7 +2,7 @@
 <div v-if="readVisiblity" :style="{
   display: readDisplay,
   position: 'absolute',
-  transform: 'perspective(100vmax) translate3d(' + (readXPos) + 'px,' + (readYPos) + 'px' + ', '+ deep +'px)' + ' scale(' + scaler + ')',
+  transform: 'perspective(100vmax) translate3d(' + (readXPos) + 'px,' + (readYPos) + 'px' + ', '+ (deep + 1) +'px)' + ' scale(' + scaler + ')',
   transformOrigin: '0% 0%',
   top: '0px',
   left: '0px',

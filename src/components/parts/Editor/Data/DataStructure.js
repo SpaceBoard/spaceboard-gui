@@ -1,22 +1,40 @@
 
-export function getPos () {
+export function getPos ({ diff }) {
   return {
-    x: window.scrollX,
-    y: window.scrollY,
+    x: window.scrollX + diff.x,
+    y: window.scrollY + diff.y,
     z: 0
   }
 }
 
-export function positioner () {
+export function positioner ({ diff = { x: 0, y: 0 } }) {
   return {
-    pos: getPos()
+    pos: getPos({ diff })
   }
 }
 
+export function generateUID () {
+  // I generate the UID from two parts here
+  // to ensure the random number provide enough bits.
+  var firstPart = (Math.random() * 46656) | 0
+  var secondPart = (Math.random() * 46656) | 0
+  firstPart = ('000' + firstPart.toString(36)).slice(-3)
+  secondPart = ('000' + secondPart.toString(36)).slice(-3)
+  return firstPart + secondPart
+}
+
 export function textBox (config) {
+  var size = { width: 200, height: 200 }
+  if (config.posDiff) {
+    config.posDiff.x += size.width * 1.0
+    // config.posDiff.y += size.height * 0.5
+  }
   return {
-    ...positioner(),
-    size: { width: 200, height: 200 },
+    id: generateUID(),
+    ...positioner({ diff: config.posDiff }),
+    size,
+    arrayName: 'textBoxes',
+    component: 'TextBox',
     ...config
   }
 }

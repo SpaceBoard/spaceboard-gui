@@ -1,21 +1,10 @@
 <template>
 <div class="wrapper">
-  <div class="toolbar">
-    <input class="scale-ranger" type="range" step="0.000001" min="0.1" max="5" v-model="scaler" />
-    <div class="btns">
-      <div class="btn btn-movable">Upload File <img class="dragger" src="./img/icons/mover.svg" /></div>
-      <div class="btn btn-movable">Picture + Annotation <img class="dragger" src="./img/icons/mover.svg" /></div>
-      <div class="btn btn-movable">Realtime Drawboard <img class="dragger" src="./img/icons/mover.svg" /></div>
-      <div class="btn btn-movable">Comment Box <img class="dragger" src="./img/icons/mover.svg" /></div>
-      <div class="btn btn-movable">Text Box <img class="dragger" src="./img/icons/mover.svg" /></div>
-    </div>
-  </div>
   <div class="canvas-area">
-    <div class="canvas-wrapper" ref="canvas-wrapper" v-touch:pan="onPanCam" v-touch:pinch="onZoom">
+    <div class="canvas-wrapper" ref="canvas-wrapper" v-touch:pan="onPanCam" v-touch:pinch="onZoom" v-touch:pinchstart="onZoomStart" v-touch:pinchend="onZoomEnd">
 
       <span v-if="root[using].items">
         <span
-
           :key="iBoxType"
           v-for="(boxType, iBoxType) in okeys(root[using].items)"
         >
@@ -41,7 +30,7 @@
               height: '200px',
               background: 'white',
               border: 'black solid 1px'
-            }">123</div>
+            }">{{ capLetter(box.component) }}</div>
           </Positioner>
         </span>
       </span>
@@ -53,6 +42,29 @@
   <div class="drawer" :class="{ 'is-open': isOpen }">
 
   </div>
+  <div class="toolbar">
+
+    <input class="scale-ranger" type="range" step="0.000001" min="0.1" max="5" v-model="scaler" />
+    <div class="btns">
+      <img src="./img/icon/mark-cam.svg" @click="() => { markCam(); }" />
+      <img src="./img/icon/reset-cam.svg" @click="() => { restoreCam(); }" />
+
+      <transition name="fade">
+      <h3 v-if="message.markCam">{{ message.markCam }}</h3>
+      </transition>
+      <SourceButton @drop="createNew" fileType="textBox"> Text Box </SourceButton>
+      <SourceButton @drop="createNew" fileType="file"> Upload File </SourceButton>
+      <SourceButton @drop="createNew" fileType="picture"> Picture + Annotation </SourceButton>
+      <SourceButton @drop="createNew" fileType="drawboard"> Realtime Drawboard </SourceButton>
+      <SourceButton @drop="createNew" fileType="commentbox"> Comment Box </SourceButton>
+      <!-- <div class="btn btn-movable">Upload File <img class="dragger" src="./img/icons/mover.svg" /></div>
+      <div class="btn btn-movable">Picture + Annotation <img class="dragger" src="./img/icons/mover.svg" /></div>
+      <div class="btn btn-movable">Realtime Drawboard <img class="dragger" src="./img/icons/mover.svg" /></div>
+      <div class="btn btn-movable">Comment Box <img class="dragger" src="./img/icons/mover.svg" /></div>
+      <div class="btn btn-movable">Text Box <img class="dragger" src="./img/icons/mover.svg" /></div> -->
+    </div>
+  </div>
+
 
 </div>
 </template>
@@ -60,19 +72,33 @@
 <script>
 import * as Data from '@/components/parts/Editor/Data/DataStructure.js'
 import Positioner from '@/components/parts/Editor/Positioner/Positioner.vue'
+import SourceButton from '@/components/parts/Editor/SourceButton/SourceButton.vue'
 import UIEvents from '@/components/parts/Editor/UIEvents/UIEvents.js'
+import TWEEN from '@tweenjs/tween.js'
+
+function capLetter (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
 
 export default {
   components: {
-    Positioner
+    Positioner,
+    SourceButton
   },
   data () {
     return {
+      capLetter,
+      message: {
+        markCam: false
+      },
       okeys: Object.keys,
       using: 'realtime',
       root: {
+        // currnet file
         realtime: {},
+        // temp obj for time travelling
         timetravel: {},
+        // backups
         timemachine: []
       },
 
@@ -86,6 +112,9 @@ export default {
       },
       cam: {
         pause: false,
+        _tsScale: 1.0,
+        _diffScale: 1.0,
+        scaler: 1.0,
         _dx: 0,
         _dy: 0,
         _x: 0,
@@ -93,7 +122,6 @@ export default {
         x: 0,
         y: 0
       },
-      scaler: 1.0,
       scaleState: {
         ts: 0,
         ds: 0
@@ -103,14 +131,43 @@ export default {
     }
   },
   computed: {
+    scaler: {
+      get () {
+        return this.cam.scaler
+      },
+      set (v) {
+        this.cam.scaler = v
+      }
+    },
     camX () {
-      return this.cam._x / this.scaler
+      var factor = this.scaler
+      factor = 1 / factor
+      return this.cam._x - (window.scrollX) * factor
     },
     camY () {
-      return this.cam._y / this.scaler
+      var factor = this.scaler
+      factor = 1 / factor
+      return this.cam._y - (window.scrollY) * factor
     }
   },
   methods: {
+    onRemoveBox ({ arrayName, id }) {
+      var array = this.root[this.using].items[arrayName]
+      var item = array.filter((eItem) => {
+        return eItem.id === id
+      })
+      var index = array.indexOf(item[0])
+      array.splice(index, 1)
+    },
+    createNew ({ type, rect }) {
+      switch (type) {
+        case 'textBox':
+          this.root.realtime.items['textBoxes'].push(Data.textBox({
+            posDiff: { x: rect.left - 300 - this.camX, y: rect.top - 56 - this.camY }
+          }))
+          break
+      }
+    },
     handleItemDraggerStart () {
       this.cam.pause = true
     },
@@ -119,17 +176,31 @@ export default {
     },
     handleItemDragger ({ item, evt }) {
       var factor = (window.navigator.userAgent.indexOf('Chrome') !== -1) ? 1.0 : 0.5
-      item.pos.x += evt.velocityX * (16.6667) * factor
-      item.pos.y += evt.velocityY * (16.6667) * factor
+      item.pos.x += evt.velocityX * (16.6667) * factor / this.scaler
+      item.pos.y += evt.velocityY * (16.6667) * factor / this.scaler
 
       this.inertia = 0.0
       this.cam._dx = 0.0
       this.cam._dy = 0.0
     },
+    onZoomStart (evt) {
+      this.cam._tsScale = evt.scale
+    },
     onZoom (evt) {
-      this.scaler = evt.scale
+      this.cam._diffScale = evt.scale - this.cam._tsScale
+      this.cam._tsScale = evt.scale
+
+      if (this.cam.scaler >= 0.1) {
+        this.cam.scaler += this.cam._diffScale
+      } else {
+        this.cam.scaler = 0.1
+      }
+
       this.cam._dx = 0
       this.cam._dy = 0
+    },
+    onZoomEnd () {
+
     },
     onPanCam (evt) {
       if (this.cam.pause) { return }
@@ -138,24 +209,63 @@ export default {
       this.cam._dy = evt.velocityY * (16.6667) * factor
 
       this.inertia = 1.1
-    }
-  },
-  mounted () {
-    setTimeout(() => {
+    },
+    initRealtime () {
       this.root[this.using] = {
         attention: {
           x: 150,
-          y: 150
+          y: 150,
+          scaler: 1.0
         },
         items: {
           textBoxes: [
             Data.textBox({ pos: { x: 10, y: 10, z: 0 } }),
+            Data.textBox({ pos: { x: 600, y: 600, z: 0 } }),
             Data.textBox({ pos: { x: 110, y: 110, z: 0 } })
           ]
         }
       }
-      this.cam._x = this.root[this.using].attention.x
-      this.cam._y = this.root[this.using].attention.y
+      this.root[this.using].attention.scaler = 5.0
+      this.viewAttention({ instant: true })
+      this.root[this.using].attention.scaler = 1.0
+      this.viewAttention({ instant: false })
+    },
+    markCam () {
+      this.root[this.using].attention.x = this.cam._x
+      this.root[this.using].attention.y = this.cam._y
+      this.root[this.using].attention.scaler = this.cam.scaler
+
+      this.message.markCam = `Camera Successfully Marked`
+      setTimeout(() => {
+        this.message.markCam = false
+      }, 1500)
+    },
+    restoreCam () {
+      this.setAttention(this.root[this.using].attention.x, this.root[this.using].attention.y, this.root[this.using].attention.scaler)
+    },
+    setAttention (x, y, scaler) {
+      this.root[this.using].attention.x = x
+      this.root[this.using].attention.y = y
+      this.root[this.using].attention.scaler = scaler
+      this.viewAttention({})
+    },
+    viewAttention ({ instant }) {
+      if (instant) {
+        this.cam._x = this.root[this.using].attention.x
+        this.cam._y = this.root[this.using].attention.y
+        this.cam.scaler = this.root[this.using].attention.scaler
+      } else {
+        new TWEEN.Tween(this.cam).to({
+          _x: this.root[this.using].attention.x,
+          _y: this.root[this.using].attention.y,
+          scaler: this.root[this.using].attention.scaler
+        }, 500).easing(TWEEN.Easing.Quadratic.Out).start()
+      }
+    }
+  },
+  mounted () {
+    setTimeout(() => {
+      this.initRealtime()
     }, 500)
     var self = this
     function rAF () {
@@ -165,6 +275,7 @@ export default {
       }
       self.inertia *= 0.97
       self.rAFID = window.requestAnimationFrame(rAF)
+      TWEEN.update()
     }
     this.rAFID = window.requestAnimationFrame(rAF)
     this.camapis = UIEvents({ target: this.$refs['canvas-wrapper'], stack: this.camStack })
@@ -184,7 +295,7 @@ export default {
     })
   },
   beforeDestroy () {
-    this.camapis.uninstall()
+    // this.camapis.uninstall()
   }
 }
 </script>
@@ -270,9 +381,12 @@ input[type=range]::-webkit-slider-thumb {
 .drawer.is-open{
   transform: translateX(0);
 }
-.dragger {
-  position: absolute;
-  right: 10px;
-  top: 10px;
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s
 }
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0
+}
+
 </style>
