@@ -25,17 +25,16 @@
             :key="iBox"
             v-for="(box, iBox) in root[using].items[boxType]"
           >
-            <div :style="{
-              color: 'red',
-              width: '200px',
-              height: '200px',
-              background: 'white',
-              border: 'black solid 1px'
-            }">{{ capLetter(box.component) }}</div>
+              <div :style="{
+                color: 'red',
+                width: '200px',
+                height: '200px',
+                background: 'white',
+                border: 'black solid 1px'
+              }">{{ capLetter(box.component) }}</div>
           </Positioner>
         </span>
       </span>
-
 
 
     </div>
@@ -184,13 +183,26 @@ export default {
         this.temp.box = false
       }
     },
+    raycast ({ rect }) {
+      var vw = this.view.x1
+      var vh = this.view.y1
+      var onScreenX = (rect.left - 300)
+      var onScreenY = (rect.top - 56)
+
+      var xpos = (onScreenX - vw * 0.5) / this.scaler + vw * 0.5 - this.cam._x
+      var ypos = (onScreenY - vh * 0.5) / this.scaler + vh * 0.5 - this.cam._y
+      return {
+        x: xpos,
+        y: ypos,
+        z: 0
+      }
+    },
     createNew ({ type, rect }) {
       switch (type) {
         case 'textBox':
-          this.root.realtime.items['textBoxes'].push(Data.textBox({
-            posDiff: {
-              x: (rect.left - 300) / this.scaler - this.cam._x,
-              y: (rect.top - 56) / this.scaler - this.cam._y
+          this.root.realtime.items['textBoxes'].push(Data.textBox(({ size }) => {
+            return {
+              pos: this.raycast({ rect })
             }
           }))
           break
@@ -240,20 +252,21 @@ export default {
     },
     initRealtime () {
       this.root[this.using] = {
+        id: Data.uuid(),
         attention: {
-          x: 150,
-          y: 150,
+          x: 0,
+          y: 0,
           scaler: 1.0
         },
         items: {
           textBoxes: [
-            Data.textBox({ pos: { x: 10, y: 10, z: 0 } }),
-            Data.textBox({ pos: { x: 600, y: 600, z: 0 } }),
-            Data.textBox({ pos: { x: 110, y: 110, z: 0 } })
+            Data.textBox(() => { return { pos: { x: 150, y: 150, z: 0 } } }),
+            Data.textBox(() => { return { pos: { x: 300, y: 500, z: 0 } } }),
+            Data.textBox(() => { return { pos: { x: 200, y: 200, z: 0 } } })
           ]
         }
       }
-      this.root[this.using].attention.scaler = 5.0
+      this.root[this.using].attention.scaler = 0.1
       this.viewAttention({ instant: true })
       this.root[this.using].attention.scaler = 1.0
       this.viewAttention({ instant: false })

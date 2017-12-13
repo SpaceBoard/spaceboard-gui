@@ -1,19 +1,19 @@
 
-export function getPos ({ diff }) {
+export function getPos () {
   return {
-    x: diff.x,
-    y: diff.y,
+    x: 0,
+    y: 0,
     z: 0
   }
 }
 
-export function positioner ({ diff = { x: 0, y: 0 } }) {
+export function positioner () {
   return {
-    pos: getPos({ diff })
+    pos: getPos()
   }
 }
 
-export function generateUID () {
+export function uuid () {
   // I generate the UID from two parts here
   // to ensure the random number provide enough bits.
   var firstPart = (Math.random() * 46656) | 0
@@ -23,18 +23,15 @@ export function generateUID () {
   return firstPart + secondPart
 }
 
-export function textBox (config) {
+export function textBox (configFn) {
   var size = { width: 200, height: 200 }
-  if (config.posDiff) {
-    config.posDiff.x += size.width * 1.0
-    // config.posDiff.y += size.height * 0.5
-  }
+  configFn = configFn || (() => { return {} })
   return {
-    id: generateUID(),
-    ...positioner({ diff: config.posDiff }),
+    id: uuid(),
+    ...positioner(),
     size,
     arrayName: 'textBoxes',
     component: 'TextBox',
-    ...config
+    ...configFn({ size })
   }
 }

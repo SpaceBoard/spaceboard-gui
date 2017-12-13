@@ -6,13 +6,13 @@
       </div>
       <img class="dragger" src="./img/mover.svg" />
     </div>
-    <div class="btn pos-abs" ref="dynamic-box" :style="{
+    <div class="btn pos-abs" :style="{
       transform: readTransform
     }">
       <div class="text">
         {{ $slots.default[0].text }}
       </div>
-      <img class="dragger" src="./img/mover.svg" v-touch:pan="(evt) => { panning(evt) }" v-touch:panend="(evt) => { panend(evt, fileType) }" />
+      <img class="dragger" src="./img/mover.svg" ref="dynamic-box" v-touch:pan="(evt) => { panning(evt) }" v-touch:panend="(evt) => { panend(evt, fileType) }" />
     </div>
   </div>
 </template>

@@ -4,8 +4,8 @@
   position: 'absolute',
   transform: 'perspective(100vmax) translate3d(' + (readXPos) + 'px,' + (readYPos) + 'px' + ', '+ (deep + 1) +'px)' + ' scale(' + scaler + ')',
   transformOrigin: '0% 0%',
-  top: '0px',
-  left: '0px',
+  top: 0 + 'px',
+  left: 0 + 'px',
   width: width + 'px',
   height: height + 'px'
 }"><slot></slot>
@@ -87,12 +87,19 @@ export default {
       default: 1
     }
   },
+  data () {
+    return {
+
+    }
+  },
   computed: {
     readXPos () {
-      return (this.xcam + this.xpos) * this.scaler
+      // center zoom
+      return (this.xcam + this.xpos - this.view.x1 * 0.5) * this.scaler + this.view.x1 * 0.5
     },
     readYPos () {
-      return (this.ycam + this.ypos) * this.scaler
+      // center zoom
+      return (this.ycam + this.ypos - this.view.y1 * 0.5) * this.scaler + this.view.y1 * 0.5
     },
     readVisiblity () {
       var ans = true
