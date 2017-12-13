@@ -1,8 +1,8 @@
 
 export function getPos ({ diff }) {
   return {
-    x: window.scrollX + diff.x,
-    y: window.scrollY + diff.y,
+    x: diff.x,
+    y: diff.y,
     z: 0
   }
 }

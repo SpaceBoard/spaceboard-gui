@@ -21,6 +21,7 @@
             :pannerStart="() => { handleItemDraggerStart() }"
             :pannerEnd="() => { handleItemDraggerEnd() }"
             :panner="(evt) => { handleItemDragger({ item: box, evt }) }"
+            @remove="(evt) => { onRemoveBox({ arrayName: box.arrayName, id: box.id }) }"
             :key="iBox"
             v-for="(box, iBox) in root[using].items[boxType]"
           >
@@ -45,13 +46,20 @@
   <div class="toolbar">
 
     <input class="scale-ranger" type="range" step="0.000001" min="0.1" max="5" v-model="scaler" />
-    <div class="btns">
+
+    <div>
       <img src="./img/icon/mark-cam.svg" @click="() => { markCam(); }" />
       <img src="./img/icon/reset-cam.svg" @click="() => { restoreCam(); }" />
-
+    </div>
+    <div>
       <transition name="fade">
-      <h3 v-if="message.markCam">{{ message.markCam }}</h3>
+        <h3 v-if="message.markCam">{{ message.markCam }}</h3>
       </transition>
+      <transition name="fade">
+        <h3 v-if="message.restoreBox" @click="onBoxRestore()" >{{ message.restoreBox }}<button @click="onBoxRestore()" >Restore</button></h3>
+      </transition>
+    </div>
+    <div class="btns">
       <SourceButton @drop="createNew" fileType="textBox"> Text Box </SourceButton>
       <SourceButton @drop="createNew" fileType="file"> Upload File </SourceButton>
       <SourceButton @drop="createNew" fileType="picture"> Picture + Annotation </SourceButton>
@@ -101,7 +109,9 @@ export default {
         // backups
         timemachine: []
       },
-
+      temp: {
+        box: false
+      },
       camStack: {},
       camapis: false,
       view: {
@@ -140,14 +150,14 @@ export default {
       }
     },
     camX () {
-      var factor = this.scaler
-      factor = 1 / factor
-      return this.cam._x - (window.scrollX) * factor
+      // var factor = this.scaler
+      // factor = 1 / factor
+      return this.cam._x
     },
     camY () {
-      var factor = this.scaler
-      factor = 1 / factor
-      return this.cam._y - (window.scrollY) * factor
+      // var factor = this.scaler
+      // factor = 1 / factor
+      return this.cam._y
     }
   },
   methods: {
@@ -158,12 +168,30 @@ export default {
       })
       var index = array.indexOf(item[0])
       array.splice(index, 1)
+      this.temp.box = item[0]
+      this.message.restoreBox = `Want to restore box?`
+      setTimeout(() => {
+        this.message.restoreBox = false
+      }, 5 * 1000)
+    },
+    onBoxRestore () {
+      var restore = this.temp.box
+      if (restore) {
+        var arrayName = restore.arrayName
+        var array = this.root[this.using].items[arrayName]
+        array.push(restore)
+        this.message.restoreBox = false
+        this.temp.box = false
+      }
     },
     createNew ({ type, rect }) {
       switch (type) {
         case 'textBox':
           this.root.realtime.items['textBoxes'].push(Data.textBox({
-            posDiff: { x: rect.left - 300 - this.camX, y: rect.top - 56 - this.camY }
+            posDiff: {
+              x: (rect.left - 300) / this.scaler - this.cam._x,
+              y: (rect.top - 56) / this.scaler - this.cam._y
+            }
           }))
           break
       }

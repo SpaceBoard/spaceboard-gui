@@ -22,6 +22,19 @@
   v-touch:pan="panner">
     <img src="./img/mover.svg" class="mover" />
   </div>
+
+  <div class="handler"
+  :style="{
+    position: 'absolute',
+    top: '0px',
+    right: '0px',
+    transformOrigin: '0% 0%',
+    transform: 'perspective(100vmax) translate3d(' + (40) + 'px,' + (-40) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
+  }"
+  v-touch:tap="() => { $emit('remove') }"
+  >
+    <img src="./img/remover.svg" class="mover" />
+  </div>
 </div>
 </template>
 
