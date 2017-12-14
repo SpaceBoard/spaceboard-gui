@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^17.1.1",
+    "axios": "^0.17.1",
     "simplify-path": "^1.1.0",
+    "socket.io-client": "^2.0.4",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
     "vue-touch-easyhi": "^2.0.0",

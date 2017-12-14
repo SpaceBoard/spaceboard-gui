@@ -32,6 +32,8 @@ export function drawboard (config = {}) {
     arrayName: 'drawboards',
     component: 'Drawboard',
     data: {
+      title: 'My New DrawBoard',
+      undo: [],
       lines: []
     },
     ...config

@@ -1,5 +1,5 @@
 <template>
-<div v-if="readVisiblity" :style="{
+<div class="app-window" v-if="readVisiblity" :style="{
   display: readDisplay,
   position: 'absolute',
   transform: 'perspective(100vmax) translate3d(' + (readXPos) + 'px,' + (readYPos) + 'px' + ', '+ (deep + 1) +'px)' + ' scale(' + scaler + ')',
@@ -15,7 +15,7 @@
     top: '0px',
     left: '0px',
     transformOrigin: '0% 0%',
-    transform: 'perspective(100vmax) translate3d(' + (-40) + 'px,' + (-40) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
+    transform: 'perspective(100vmax) translate3d(' + (0) + 'px,' + (0) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
   }"
   v-touch:panend="pannerEnd"
   v-touch:panstart="pannerStart"
@@ -29,19 +29,27 @@
     top: '0px',
     right: '0px',
     transformOrigin: '0% 0%',
-    transform: 'perspective(100vmax) translate3d(' + (40) + 'px,' + (-40) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
+    transform: 'perspective(100vmax) translate3d(' + (0) + 'px,' + (0) + 'px' + ', '+ 2 +'px)' + ' scale(' + 1.0 + ')',
   }"
   v-touch:tap="() => { $emit('remove') }"
   >
     <img src="./img/remover.svg" class="mover" draggable="false" />
   </div>
-  <slot></slot>
+  <div class="app-area" :style="{
+      width: width + 'px',
+      height: (height - offsetY) + 'px',
+    }">
+    <slot></slot>
+  </div>
 </div>
 </template>
 
 <script>
 export default {
   props: {
+    offsetY: {
+      default: 50
+    },
     pannerStart: {
       default () { return () => {} }
     },
@@ -141,9 +149,6 @@ export default {
   cursor: move;
   width: 45px;
   height: 45px;
-  background-color: white;
-  border: grey solid 1px;
-  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -151,5 +156,15 @@ export default {
 .mover{
   width: 30px;
   height: 30px;
+}
+
+.app-window{
+  border: grey solid 1px;
+  background-color: rgba(255,255,255,0.2);
+}
+
+.app-area{
+  border-top: 1px solid grey;
+  margin-top: 50px;
 }
 </style>

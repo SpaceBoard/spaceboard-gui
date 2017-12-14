@@ -67,11 +67,10 @@ export default {
   height: 56px;
 
   line-height: 56px;
-  background-color: #2087ff;
-  color: white;
+  border: grey solid 1px;
+  color: black;
   font-size: 20px;
   text-align: left;
-
 }
 .pos-abs{
   position: absolute;
