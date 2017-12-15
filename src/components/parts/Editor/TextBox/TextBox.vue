@@ -1,6 +1,6 @@
 <template>
   <textarea ref="ta"
-   class="box textarea can-do-default" v-model="box.data.text"></textarea>
+   class="box textarea can-do-default" v-model="box.data.text" @input="() => { $emit('pulse-update') }"></textarea>
 </template>
 
 <script>
@@ -15,10 +15,22 @@ export default {
       }
     }
   },
+  computed: {
+    text () {
+      return this.box.data.text
+    }
+  },
+  watch: {
+    text () {
+      var el = this.$refs['ta']
+      el.scrollTop = el.scrollHeight
+    }
+  },
   info: {
     size: { width: 300, height: 200 }
   },
   mounted () {
+
   },
   methods: {
     // onPan (evt) {

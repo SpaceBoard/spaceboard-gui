@@ -16,7 +16,7 @@
       <img src="./img/palette.svg" draggable="false" />
     </div>
     <div class="image-btn" v-touch:tap="pickPhoto">
-      <input type="file" class="hidden" ref="fileupload" @change="onSelectPhoto" />
+      <input type="file" accept="image/x-png,image/gif,image/jpeg" class="hidden" ref="fileupload" @change="onSelectPhoto" />
       <img src="./img/image.svg" draggable="false" />
     </div>
     <div class="palette" v-if="showPalete">
@@ -172,16 +172,33 @@ export default {
         this.imageObj.src = link
       }
     },
-    resampleDataURL () {
+    resampleDataURL (dataURL) {
+      return new Promise((resolve, reject) => {
+        var newCanvas = document.createElement('canvas')
+        newCanvas.width = this.size.width
+        newCanvas.height = this.size.height - this.offsetY
+        var ctx = newCanvas.getContext('2d')
 
+        var img = new Image()
+        img.onload = () => {
+          drawImg({ ctx, canvas: newCanvas, image: img })
+          var png = newCanvas.toDataURL('image/png')
+          resolve(png)
+        }
+        img.src = dataURL
+      })
     },
     previewPhoto (evt) {
       var reader = new FileReader()
       reader.onload = (evt) => {
         try {
           tempStore[this.box.id] = reader.result
-
-          this.loadPicToCanvas(tempStore[this.box.id])
+          this.resampleDataURL(reader.result).then((png) => {
+            tempStore[this.box.id] = png
+            this.loadPicToCanvas(tempStore[this.box.id])
+          }).catch((e) => {
+            this.loadPicToCanvas(tempStore[this.box.id])
+          })
         } catch (e) {
           console.log(e)
         }

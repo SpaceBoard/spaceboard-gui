@@ -17,36 +17,66 @@ socket.on('dn/counter', (data) => {
   console.log(data)
 })
 
-function dummy ({ data, root }) {
+function dataUpdater ({ data, root }) {
   var array = root.realtime.items[data.arrayName]
   var result = array.filter((item) => { return item.id === data.item.id })
   var index = array.indexOf(result[0])
   console.log(data.item)
   if (array[index]) {
-    array[index].data = data.item.data
+    for (var key in data.item) {
+      array[index][key] = data.item[key]
+    }
+    // var keys = Object.keys[data.item]
+    // keys.filter(k => k === 'data').forEach((key) => {
+    //   array[index][key] = data.item[key]
+    // })
+    // array[index] = {
+    //   ...array[index],
+    //   ...data.item
+    // }
+    // array[index].data = data.item.data
   }
 }
 
-export function setupRealtime ({ readRoot, $forceUpdate }) {
-  socket.emit('up/join', {
+function dataCreator ({ data, root }) {
+  var array = root.realtime.items[data.arrayName]
+  console.log(data)
+  array.push(data.item)
+}
+
+export function setupRealtimeUpdaters ({ readRoot, $forceUpdate }) {
+  socket.emit('up/join/space', {
     spaceID: readRoot.realtime.id
   })
-  socket.on(`dn/spaceboard`, (data) => {
-    console.log(data)
-    dummy({ data, root: readRoot })
-    // $forceUpdate()
+  Object.keys(readRoot.realtime.items).forEach((arrayName) => {
+    socket.on(`dn/space@update/` + arrayName, (data) => {
+      dataUpdater({ data, root: readRoot })
+    })
+    socket.on(`dn/space@add/` + arrayName, (data) => {
+      dataCreator({ data, root: readRoot })
+    })
   })
 }
 
-export function onCreateItem ({ item, arrayName }) {
+export function onItemHydration () {
+
 }
 
-export function onDelete ({ item, arrayName, id }) {
+export function onItemCreation ({ spaceID, item, arrayName, id }) {
+  socket.emit('up/space@add/' + arrayName, {
+    spaceID,
+    arrayName,
+    item,
+    id
+  })
+}
+
+export function onItemDeletion ({ item, arrayName, id }) {
 
 }
 
 export function onItemPulse ({ spaceID, item, arrayName, id }) {
-  socket.emit('up/spaceboard', {
+  socket.emit('up/space@update/' + arrayName, {
     spaceID,
     arrayName,
     item,

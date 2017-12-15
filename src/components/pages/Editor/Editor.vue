@@ -22,7 +22,7 @@
             :ypos="box.pos.y"
             :scaler="scaler"
             :pannerStart="() => { handleItemDraggerStart() }"
-            :pannerEnd="() => { handleItemDraggerEnd() }"
+            :pannerEnd="() => { handleItemDraggerEnd(); onItemPulse({ arrayName: box.arrayName, id: box.id, spaceID: root.realtime.id, item: box }) }"
             :panner="(evt) => { handleItemDragger({ item: box, evt }) }"
             @remove="(evt) => { onRemoveBox({ arrayName: box.arrayName, id: box.id }) }"
             :key="iBox"
@@ -36,7 +36,7 @@
               :box="box"
               :view="view"
               :offsetY="50"
-              :user="{ uid: 'user2', name: 'dai ming' }"
+              :user="user"
             ></component>
           </Positioner>
         </div>
@@ -50,11 +50,10 @@
   </div>
   <div class="toolbar">
     <div class="btns">
-      <SourceButton @drop="createNewOnDrop" fileType="textBox"> Text Box </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="file"> Upload File </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="picture"> Picture + Annotation </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="drawboard"> Realtime Drawboard </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="commentBox"> Comment Box </SourceButton>
+      <SourceButton @drop="createNewOnDrop" fileType="drawboard">Picture + Draw </SourceButton>
+      <SourceButton @drop="createNewOnDrop" fileType="commentBox">Comment </SourceButton>
+      <SourceButton @drop="createNewOnDrop" fileType="textBox">Text</SourceButton>
+      <SourceButton @drop="createNewOnDrop" fileType="file">File</SourceButton>
       <!-- <div class="btn btn-movable">Upload File <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Picture + Annotation <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Realtime Drawboard <img class="dragger" src="./img/icons/mover.svg" /></div>
@@ -97,7 +96,6 @@ import TWEEN from '@tweenjs/tween.js'
 function capLetter (string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
-Pulse.onCreateItem({ item: {}, arrayName: 'abc' })
 
 export default {
   components: {
@@ -109,6 +107,7 @@ export default {
   },
   data () {
     return {
+      user: { uid: Data.uuid(), colorA: (Math.random() * 0xFFFFFF << 0).toString(16) + '', colorB: (Math.random() * 0xFFFFFF << 0).toString(16) + '', name: 'dai ming' },
       hover: false,
       capLetter,
       message: {
@@ -199,7 +198,7 @@ export default {
     },
     setupPulse () {
       var self = this
-      Pulse.setupRealtime({
+      Pulse.setupRealtimeUpdaters({
         $forceUpdate: this.$forceUpdate.bind(this),
         spaceID: this.root.realtime.id,
         get readRoot () {
@@ -256,28 +255,37 @@ export default {
       }
     },
     createNewOnDrop ({ type, rect }) {
+      var newItem = false
       switch (type) {
         case 'textBox':
-          this.root.realtime.items['textBoxes'].push(Data.textBox(({ size }) => {
+          newItem = Data.textBox(({ size }) => {
             return {
               pos: this.raycast({ rect })
             }
-          }))
+          })
+          this.root.realtime.items['textBoxes'].push(
+            newItem
+          )
           break
         case 'drawboard':
+          newItem = Data.drawboard({
+            pos: this.raycast({ rect })
+          })
           this.root.realtime.items['drawboards'].push(
-            Data.drawboard({
-              pos: this.raycast({ rect })
-            })
+            newItem
           )
           break
         case 'commentBox':
+          newItem = Data.commentBox({
+            pos: this.raycast({ rect })
+          })
           this.root.realtime.items['commentBoxes'].push(
-            Data.commentBox({
-              pos: this.raycast({ rect })
-            })
+            newItem
           )
           break
+      }
+      if (newItem) {
+        Pulse.onItemCreation({ item: newItem, spaceID: this.root.realtime.id, arrayName: newItem.arrayName, id: newItem.id })
       }
     },
     handleItemDraggerStart () {
@@ -332,26 +340,26 @@ export default {
         },
         items: {
           drawboards: [
-            Data.drawboard({ pos: { x: 36, y: 270, z: 0 } })
+            // Data.drawboard({ pos: { x: 36, y: 270, z: 0 } })
           ],
           textBoxes: [
-            Data.textBox(() => { return { pos: { x: 50, y: 50, z: 0 } } })
+            // Data.textBox(() => { return { pos: { x: 50, y: 50, z: 0 } } })
           ],
           commentBoxes: [
-            Data.commentBox({
-              pos: { x: 585, y: 30, z: 0 },
-              sampleComments: [
-                Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'How are you?' }),
-                Data.makeComment({ name: 'dai ming', uid: 'user2', text: 'I\'m fine. Thanks!' }),
-                Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'See you around~' })
-              ]
-            })
+            // Data.commentBox({
+            //   pos: { x: 585, y: 30, z: 0 },
+            //   sampleComments: [
+            //     Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'How are you?' }),
+            //     Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'See you around~' })
+            //   ]
+            // })
           ]
         }
       }
+
       /* eslint-disable */
-      // this.root =
-      // {"realtime":{"id":"2be8nv","attention":{"x":0,"y":0,"scaler":1},"items":{"drawboards":[{"id":"0sid7w","pos":{"x":81.66452035554792,"y":350.4130059058064,"z":0},"size":{"width":500,"height":500},"arrayName":"drawboards","component":"Drawboard","data":{"title":"My New DrawBoard","undo":[],"lines":[{"points":[{"x":"-0.87466","y":"0.78965"},{"x":"-0.87466","y":"0.73765"},{"x":"-0.87466","y":"0.66965"},{"x":"-0.87066","y":"0.59765"},{"x":"-0.85866","y":"0.50965"},{"x":"-0.85466","y":"0.47365"},{"x":"-0.83866","y":"0.44965"},{"x":"-0.81866","y":"0.42965"},{"x":"-0.79866","y":"0.42165"},{"x":"-0.77866","y":"0.41765"},{"x":"-0.75466","y":"0.41365"},{"x":"-0.73066","y":"0.41365"},{"x":"-0.69466","y":"0.41365"},{"x":"-0.65466","y":"0.41765"},{"x":"-0.62666","y":"0.41765"},{"x":"-0.59466","y":"0.41765"},{"x":"-0.57866","y":"0.41365"},{"x":"-0.57866","y":"0.41365"}],"strokeStyle":"red"},{"points":[{"x":"-0.58666","y":"0.65765"},{"x":"-0.59466","y":"0.64965"},{"x":"-0.60266","y":"0.64165"},{"x":"-0.61466","y":"0.63365"},{"x":"-0.62666","y":"0.61365"},{"x":"-0.63466","y":"0.59765"},{"x":"-0.63466","y":"0.57765"},{"x":"-0.63466","y":"0.56165"},{"x":"-0.63466","y":"0.54165"},{"x":"-0.63466","y":"0.52565"},{"x":"-0.63066","y":"0.51365"},{"x":"-0.62266","y":"0.50565"},{"x":"-0.61066","y":"0.49765"},{"x":"-0.59466","y":"0.49365"},{"x":"-0.57066","y":"0.49365"},{"x":"-0.54666","y":"0.49365"},{"x":"-0.52666","y":"0.49765"},{"x":"-0.51066","y":"0.50165"},{"x":"-0.49866","y":"0.50965"},{"x":"-0.49066","y":"0.51765"},{"x":"-0.48666","y":"0.52565"},{"x":"-0.48266","y":"0.52965"},{"x":"-0.48266","y":"0.53765"},{"x":"-0.48266","y":"0.54965"},{"x":"-0.48266","y":"0.55365"},{"x":"-0.48666","y":"0.58165"},{"x":"-0.49066","y":"0.60165"},{"x":"-0.50266","y":"0.62165"},{"x":"-0.51466","y":"0.63365"},{"x":"-0.52666","y":"0.64165"},{"x":"-0.53866","y":"0.64965"},{"x":"-0.55066","y":"0.65365"},{"x":"-0.55866","y":"0.65365"},{"x":"-0.56666","y":"0.65365"},{"x":"-0.57066","y":"0.65365"},{"x":"-0.57466","y":"0.65365"},{"x":"-0.57466","y":"0.64965"},{"x":"-0.57466","y":"0.64965"}],"strokeStyle":"green"},{"points":[{"x":"-0.40266","y":"0.71765"},{"x":"-0.39866","y":"0.64565"},{"x":"-0.39466","y":"0.54965"},{"x":"-0.37866","y":"0.45765"},{"x":"-0.37066","y":"0.38965"},{"x":"-0.36266","y":"0.34165"},{"x":"-0.35466","y":"0.30965"},{"x":"-0.35466","y":"0.30565"},{"x":"-0.35066","y":"0.29765"},{"x":"-0.35066","y":"0.29765"}],"strokeStyle":"blue"},{"points":[{"x":"-0.24266","y":"0.60965"},{"x":"-0.28666","y":"0.57765"},{"x":"-0.33466","y":"0.53765"},{"x":"-0.37866","y":"0.50965"},{"x":"-0.40266","y":"0.48965"},{"x":"-0.42266","y":"0.47765"},{"x":"-0.42666","y":"0.46965"},{"x":"-0.43066","y":"0.46965"},{"x":"-0.43066","y":"0.46565"},{"x":"-0.42666","y":"0.46565"},{"x":"-0.41066","y":"0.46165"},{"x":"-0.39066","y":"0.45365"},{"x":"-0.36666","y":"0.43365"},{"x":"-0.33866","y":"0.41365"},{"x":"-0.30666","y":"0.39765"},{"x":"-0.28666","y":"0.38565"},{"x":"-0.27066","y":"0.37765"},{"x":"-0.25866","y":"0.37365"},{"x":"-0.25466","y":"0.37365"},{"x":"-0.23466","y":"0.36565"},{"x":"-0.23466","y":"0.36565"}],"strokeStyle":"blue"},{"points":[{"x":"-0.58266","y":"0.25765"},{"x":"-0.59866","y":"0.25765"},{"x":"-0.60666","y":"0.25365"},{"x":"-0.61866","y":"0.24565"},{"x":"-0.63066","y":"0.23365"},{"x":"-0.64666","y":"0.21765"},{"x":"-0.65866","y":"0.19765"},{"x":"-0.66266","y":"0.16565"},{"x":"-0.67466","y":"0.10565"},{"x":"-0.67466","y":"0.00165"},{"x":"-0.67466","y":"-0.04235"},{"x":"-0.67466","y":"-0.09035"},{"x":"-0.67466","y":"-0.10635"},{"x":"-0.67466","y":"-0.11435"},{"x":"-0.67466","y":"-0.11835"},{"x":"-0.67466","y":"-0.11835"}],"strokeStyle":"purple"},{"points":[{"x":"-0.69466","y":"0.05365"},{"x":"-0.63866","y":"0.06565"},{"x":"-0.57066","y":"0.07365"},{"x":"-0.53866","y":"0.07365"},{"x":"-0.52266","y":"0.07365"},{"x":"-0.51466","y":"0.07365"},{"x":"-0.51066","y":"0.07365"},{"x":"-0.51066","y":"0.07365"}],"strokeStyle":"purple"},{"points":[{"x":"-0.39866","y":"0.09365"},{"x":"-0.40666","y":"0.03365"},{"x":"-0.40666","y":"-0.02635"},{"x":"-0.40666","y":"-0.08635"},{"x":"-0.40666","y":"-0.12635"},{"x":"-0.40266","y":"-0.15835"},{"x":"-0.39466","y":"-0.17435"},{"x":"-0.39066","y":"-0.18235"},{"x":"-0.38666","y":"-0.18635"},{"x":"-0.38266","y":"-0.18635"},{"x":"-0.35466","y":"-0.17835"},{"x":"-0.30666","y":"-0.15035"},{"x":"-0.26266","y":"-0.10635"},{"x":"-0.22666","y":"-0.05835"},{"x":"-0.20266","y":"-0.03035"},{"x":"-0.18666","y":"0.00165"},{"x":"-0.17866","y":"0.02565"},{"x":"-0.17866","y":"0.04965"},{"x":"-0.17866","y":"0.06565"},{"x":"-0.17866","y":"0.08165"},{"x":"-0.18266","y":"0.08965"},{"x":"-0.18666","y":"0.09365"},{"x":"-0.19066","y":"0.09765"},{"x":"-0.19466","y":"0.09765"},{"x":"-0.19466","y":"0.09365"},{"x":"-0.19466","y":"0.08565"},{"x":"-0.19066","y":"0.07365"},{"x":"-0.17866","y":"0.01765"},{"x":"-0.17066","y":"-0.06635"},{"x":"-0.15466","y":"-0.15035"},{"x":"-0.13866","y":"-0.20635"},{"x":"-0.12666","y":"-0.25035"},{"x":"-0.11866","y":"-0.27035"},{"x":"-0.11866","y":"-0.27435"},{"x":"-0.11066","y":"-0.27435"},{"x":"-0.10266","y":"-0.27435"},{"x":"-0.10266","y":"-0.27435"}],"strokeStyle":"black"},{"points":[{"x":"0.04534","y":"0.04565"},{"x":"0.04534","y":"-0.07035"},{"x":"0.04934","y":"-0.11435"},{"x":"0.04934","y":"-0.15835"},{"x":"0.05334","y":"-0.17835"},{"x":"0.05334","y":"-0.19035"},{"x":"0.05334","y":"-0.19435"},{"x":"0.05734","y":"-0.19435"},{"x":"0.05734","y":"-0.19835"},{"x":"0.05734","y":"-0.19435"},{"x":"0.05334","y":"-0.19435"},{"x":"0.05334","y":"-0.19035"},{"x":"0.05334","y":"-0.17835"},{"x":"0.06134","y":"-0.15035"},{"x":"0.07334","y":"-0.09035"},{"x":"0.09334","y":"-0.02235"},{"x":"0.12934","y":"0.06565"},{"x":"0.14534","y":"0.10165"},{"x":"0.15734","y":"0.13765"},{"x":"0.16534","y":"0.15365"},{"x":"0.16934","y":"0.16165"},{"x":"0.17334","y":"0.16165"},{"x":"0.17734","y":"0.16165"},{"x":"0.18134","y":"0.16165"},{"x":"0.18534","y":"0.15765"},{"x":"0.19334","y":"0.14965"},{"x":"0.20534","y":"0.13765"},{"x":"0.21734","y":"0.12565"},{"x":"0.22534","y":"0.11365"},{"x":"0.23734","y":"0.09365"},{"x":"0.24934","y":"0.06965"},{"x":"0.25734","y":"0.02965"},{"x":"0.27334","y":"-0.01435"},{"x":"0.28934","y":"-0.04635"},{"x":"0.30134","y":"-0.07835"},{"x":"0.30934","y":"-0.10235"},{"x":"0.32534","y":"-0.11835"},{"x":"0.34534","y":"-0.13035"},{"x":"0.39734","y":"-0.14635"},{"x":"0.42934","y":"-0.15035"},{"x":"0.43334","y":"-0.15035"},{"x":"0.43734","y":"-0.14635"},{"x":"0.43734","y":"-0.14235"},{"x":"0.43734","y":"-0.12235"},{"x":"0.43734","y":"-0.12235"}],"strokeStyle":"gold"}]}}],"textBoxes":[{"id":"750wgn","pos":{"x":81.73504797695486,"y":104.40865695993296,"z":0},"size":{"width":300,"height":200},"arrayName":"textBoxes","component":"TextBox","data":{"text":"New Text"}},{"id":"v2me66","pos":{"x":427.3393327803211,"y":59.81976390600458,"z":0},"size":{"width":300,"height":200},"arrayName":"textBoxes","component":"TextBox","data":{"text":"New Text"}},{"id":"ckygdc","pos":{"x":617.1763589536438,"y":296.1026460142827,"z":0},"size":{"width":300,"height":200},"arrayName":"textBoxes","component":"TextBox","data":{"text":"New Text"}}]}},"timetravel":{},"timemachine":[]}
+      this.root =
+      {"realtime":{"id":"pwnxku","attention":{"x":0,"y":0,"scaler":1},"items":{"drawboards":[{"id":"wzff9r","pos":{"x":63.070281982421875,"y":317.76702880859375,"z":0},"size":{"width":500,"height":500},"arrayName":"drawboards","component":"Drawboard","data":{"title":"My New DrawBoard","undo":[],"lines":[{"points":[{"x":"-0.81628","y":"0.31452"},{"x":"-0.80828","y":"0.32785"},{"x":"-0.80428","y":"0.34563"},{"x":"-0.79228","y":"0.36341"},{"x":"-0.76828","y":"0.39008"},{"x":"-0.74828","y":"0.40341"},{"x":"-0.69628","y":"0.43008"},{"x":"-0.66028","y":"0.43896"},{"x":"-0.61628","y":"0.44341"},{"x":"-0.56028","y":"0.44785"},{"x":"-0.50828","y":"0.44341"},{"x":"-0.47228","y":"0.43008"},{"x":"-0.42828","y":"0.41230"},{"x":"-0.40028","y":"0.38563"},{"x":"-0.37228","y":"0.35896"},{"x":"-0.34428","y":"0.33230"},{"x":"-0.32828","y":"0.30563"},{"x":"-0.31228","y":"0.28341"},{"x":"-0.30428","y":"0.27008"},{"x":"-0.30428","y":"0.25674"},{"x":"-0.30428","y":"0.24341"},{"x":"-0.31228","y":"0.23452"},{"x":"-0.33228","y":"0.22563"},{"x":"-0.36428","y":"0.21230"},{"x":"-0.40828","y":"0.19452"},{"x":"-0.44828","y":"0.18563"},{"x":"-0.47628","y":"0.17674"},{"x":"-0.50028","y":"0.17230"},{"x":"-0.52028","y":"0.16785"},{"x":"-0.52428","y":"0.16785"},{"x":"-0.52428","y":"0.17230"},{"x":"-0.52428","y":"0.18119"},{"x":"-0.52428","y":"0.19008"},{"x":"-0.52428","y":"0.19896"},{"x":"-0.51628","y":"0.20785"},{"x":"-0.50828","y":"0.21230"},{"x":"-0.48828","y":"0.22119"},{"x":"-0.44828","y":"0.23452"},{"x":"-0.39628","y":"0.24785"},{"x":"-0.32828","y":"0.25674"},{"x":"-0.28028","y":"0.26119"},{"x":"-0.22828","y":"0.26119"},{"x":"-0.19228","y":"0.26119"},{"x":"-0.16028","y":"0.26119"},{"x":"-0.14028","y":"0.25674"},{"x":"-0.12028","y":"0.24785"},{"x":"-0.09628","y":"0.23896"},{"x":"-0.08428","y":"0.23008"},{"x":"-0.06828","y":"0.20341"},{"x":"-0.05628","y":"0.19008"},{"x":"-0.04828","y":"0.17230"},{"x":"-0.04028","y":"0.15008"},{"x":"-0.04028","y":"0.14119"},{"x":"-0.04028","y":"0.12785"},{"x":"-0.04028","y":"0.11452"},{"x":"-0.04428","y":"0.11008"},{"x":"-0.05628","y":"0.10119"},{"x":"-0.07628","y":"0.09230"},{"x":"-0.09628","y":"0.07896"},{"x":"-0.12828","y":"0.06119"},{"x":"-0.16428","y":"0.05230"},{"x":"-0.20828","y":"0.04341"},{"x":"-0.23628","y":"0.03896"},{"x":"-0.26028","y":"0.03896"},{"x":"-0.27228","y":"0.04341"},{"x":"-0.28028","y":"0.05230"},{"x":"-0.28428","y":"0.06563"},{"x":"-0.28428","y":"0.07896"},{"x":"-0.27228","y":"0.10563"},{"x":"-0.23228","y":"0.16785"},{"x":"-0.18028","y":"0.22563"},{"x":"-0.10028","y":"0.29674"},{"x":"-0.08028","y":"0.31008"},{"x":"-0.01228","y":"0.34119"},{"x":"0.04772","y":"0.35008"},{"x":"0.09172","y":"0.35896"},{"x":"0.13572","y":"0.35896"},{"x":"0.16772","y":"0.35008"},{"x":"0.20372","y":"0.33674"},{"x":"0.24372","y":"0.31008"},{"x":"0.27972","y":"0.27008"},{"x":"0.31572","y":"0.21674"},{"x":"0.34372","y":"0.15452"},{"x":"0.36772","y":"0.10119"},{"x":"0.38372","y":"0.03452"},{"x":"0.39572","y":"-0.00992"},{"x":"0.39972","y":"-0.05437"},{"x":"0.40772","y":"-0.07659"},{"x":"0.40772","y":"-0.09437"},{"x":"0.40772","y":"-0.10326"},{"x":"0.40772","y":"-0.10770"},{"x":"0.40772","y":"-0.11215"},{"x":"0.41172","y":"-0.12104"},{"x":"0.41172","y":"-0.12104"}],"strokeStyle":"green"}]}}],"textBoxes":[{"id":"43noxj","pos":{"x":50,"y":50,"z":0},"size":{"width":300,"height":200},"arrayName":"textBoxes","component":"TextBox","data":{"text":"New Text"}}],"commentBoxes":[{"id":"1benr4","pos":{"x":601.6386939607628,"y":61.97921422301565,"z":0},"size":{"width":300,"height":600},"arrayName":"commentBoxes","component":"CommentBox","data":{"title":"My New CommentBox","comments":[{"uid":"3b00ed","name":"dai ming","date":"2017-12-15T07:36:09.220Z","text":"Hi"}]},"sampleComments":[]}]}},"timetravel":{},"timemachine":[]}
       /* eslint-enable */
       this.setupPulse()
       this.zoomIntro()
@@ -369,19 +377,19 @@ export default {
       this.root[this.using].attention.y = this.cam._y
       this.root[this.using].attention.scaler = this.cam.scaler
 
-      this.message.markCam = `Camera Successfully Marked`
+      this.message.markCam = `Sync: All Watch My Screen`
       setTimeout(() => {
         this.message.markCam = false
       }, 1500)
     },
     restoreCam () {
       this.setAttention(this.root[this.using].attention.x, this.root[this.using].attention.y, this.root[this.using].attention.scaler)
+      this.viewAttention({ instant: false })
     },
     setAttention (x, y, scaler) {
       this.root[this.using].attention.x = x
       this.root[this.using].attention.y = y
       this.root[this.using].attention.scaler = scaler
-      this.viewAttention({})
     },
     viewAttention ({ instant }) {
       // remove inertia.
@@ -455,6 +463,7 @@ export default {
   margin-left: 30px;
   height: 36px;
   width: 250px;
+  margin-bottom: 30px;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -503,7 +512,6 @@ input[type=range]::-webkit-slider-thumb {
   display: flex;
   justify-content: space-around;
   align-items: flex-start;
-  height: 470px;
 }
 .canvas-wrapper{
   overflow: hidden;

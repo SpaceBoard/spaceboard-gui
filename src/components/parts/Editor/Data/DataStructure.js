@@ -23,12 +23,14 @@ export function uuid () {
   return firstPart + secondPart
 }
 
-export function makeComment ({ text = 'New Text', uid = 'user1', name = '' }) {
+export function makeComment ({ text = 'New Text', uid = 'user1', name = '', colorA, colorB }) {
   return {
     uid,
     name,
     date: new Date(),
-    text
+    text,
+    colorA,
+    colorB
   }
 }
 

@@ -14,6 +14,9 @@
         'box-others': user.uid !== bubble.uid,
         'box-me': user.uid === bubble.uid
       }"
+      :style="{
+        backgroundImage: `linear-gradient(45deg, #${bubble.colorA},#${bubble.colorB})`
+      }"
       >
         {{ bubble.text }}
       </div>
@@ -82,12 +85,15 @@ export default {
       this.box.data.comments.push(
         Data.makeComment({
           uid: this.user.uid,
+          colorA: this.user.colorA,
+          colorB: this.user.colorB,
           name: this.user.name,
           text: this.newComment
         })
       )
       this.newComment = ''
       this.$refs.texter.focus()
+      this.$emit('pulse-update')
     },
     sayUpdate () {
 
