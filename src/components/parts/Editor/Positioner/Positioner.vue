@@ -6,10 +6,10 @@
   transformOrigin: '0% 0%',
   top: 0 + 'px',
   left: 0 + 'px',
-  width: width + 'px',
-  height: height + 'px'
+  width: size.width + 'px',
+  height: size.height + 'px'
 }">
-  <div class="handler"
+  <div class="handler mover-bar"
   :style="{
     position: 'absolute',
     top: '0px',
@@ -20,7 +20,7 @@
   v-touch:panend="pannerEnd"
   v-touch:panstart="pannerStart"
   v-touch:pan="panner">
-    <img src="./img/mover.svg" class="mover" draggable="false" />
+    <!-- <img src="./img/mover.svg" class="mover" draggable="false" /> -->
   </div>
 
   <div class="handler"
@@ -36,7 +36,7 @@
     <img src="./img/remover.svg" class="mover" draggable="false" />
   </div>
   <div class="app-area" :style="{
-      width: width + 'px',
+      width: size.width + 'px',
       height: (height - offsetY) + 'px',
     }">
     <slot></slot>
@@ -88,6 +88,7 @@ export default {
     xpos: {
       default: 10
     },
+    size: {},
     width: {
       default: 100
     },
@@ -117,11 +118,11 @@ export default {
       var view = this.view
       var x0 = this.readXPos
       var y0 = this.readYPos
-      var x1 = (this.readXPos + this.width * this.scaler)
-      var y1 = (this.readYPos + this.height * this.scaler)
+      var x1 = (this.readXPos + this.size.width * this.scaler)
+      var y1 = (this.readYPos + this.size.height * this.scaler)
 
-      var x2 = x0 + this.width * this.scaler
-      var y2 = y0 + this.height * this.scaler
+      var x2 = x0 + this.size.width * this.scaler
+      var y2 = y0 + this.size.height * this.scaler
 
       if (
         (x2 < 0 || y2 < 0) ||
@@ -152,6 +153,11 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.mover-bar{
+  background-image: linear-gradient(45deg, hotpink, cyan);
+  height: 50px;
+  width: 100%;
 }
 .mover{
   width: 30px;

@@ -10,6 +10,10 @@ Vue.config.productionTip = false
 
 var VueTouch = require('vue-touch-easyhi')
 Vue.use(VueTouch)
+VueTouch.registerCustomEvent('doubletap', {
+  type: 'tap',
+  taps: 2
+})
 
 /* eslint-disable no-new */
 new Vue({

@@ -23,6 +23,35 @@ export function uuid () {
   return firstPart + secondPart
 }
 
+export function makeComment ({ text = 'New Text', uid = 'user1', name = '' }) {
+  return {
+    uid,
+    name,
+    date: new Date(),
+    text
+  }
+}
+
+export function commentBox (config = {}) {
+  var size = require('../CommentBox/CommentBox.vue').default.info.size
+  return {
+    id: uuid(),
+    ...positioner(),
+    size,
+    arrayName: 'commentBoxes',
+    component: 'CommentBox',
+    data: {
+      title: 'My New CommentBox',
+      comments: [
+        makeComment({ name: 'siu ming', uid: 'user1', text: 'How are you?' }),
+        makeComment({ name: 'dai ming', uid: 'user2', text: 'I\'m fine. Thanks!' }),
+        makeComment({ name: 'siu ming', uid: 'user1', text: 'See you around' })
+      ]
+    },
+    ...config
+  }
+}
+
 export function drawboard (config = {}) {
   var size = require('../Drawboard/Drawboard.vue').default.info.size
   return {
