@@ -44,7 +44,22 @@ function dataCreator ({ data, root }) {
   array.push(data.item)
 }
 
-export function setupRealtimeUpdaters ({ readRoot, $forceUpdate }) {
+function dataRemover ({ data, root }) {
+  var array = root.realtime.items[data.arrayName]
+  var result = array.filter((item) => { return item.id === data.item.id })
+  var index = array.indexOf(result[0])
+  array.splice(index, 1)
+}
+
+// function dataRootReader ({ data, root }) {
+//   if (data.item.id === root.realtime.id) {
+//     return root
+//   } else {
+//     return false
+//   }
+// }
+
+export function setupRealtimeUpdaters ({ readRoot, writeRoot, $forceUpdate }) {
   socket.emit('up/join/space', {
     spaceID: readRoot.realtime.id
   })
@@ -55,10 +70,13 @@ export function setupRealtimeUpdaters ({ readRoot, $forceUpdate }) {
     socket.on(`dn/space@add/` + arrayName, (data) => {
       dataCreator({ data, root: readRoot })
     })
+    socket.on(`dn/space@remove/` + arrayName, (data) => {
+      dataRemover({ data, root: readRoot })
+    })
   })
 }
 
-export function onItemHydration () {
+export function onItemHydration ({ spaceID }) {
 
 }
 
@@ -71,8 +89,13 @@ export function onItemCreation ({ spaceID, item, arrayName, id }) {
   })
 }
 
-export function onItemDeletion ({ item, arrayName, id }) {
-
+export function onItemDeletion ({ spaceID, item, arrayName, id }) {
+  socket.emit('up/space@remove/' + arrayName, {
+    spaceID,
+    arrayName,
+    item,
+    id
+  })
 }
 
 export function onItemPulse ({ spaceID, item, arrayName, id }) {

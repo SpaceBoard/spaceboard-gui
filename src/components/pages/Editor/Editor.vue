@@ -201,6 +201,9 @@ export default {
       Pulse.setupRealtimeUpdaters({
         $forceUpdate: this.$forceUpdate.bind(this),
         spaceID: this.root.realtime.id,
+        set writeRoot (v) {
+          self.root = v
+        },
         get readRoot () {
           return self.root
         }
@@ -224,6 +227,9 @@ export default {
       })
       var index = array.indexOf(item[0])
       array.splice(index, 1)
+
+      Pulse.onItemDeletion({ spaceID: this.root.realtime.id, item, arrayName, id })
+
       this.temp.box = item[0]
       this.message.restoreBox = `Want to restore box?`
       setTimeout(() => {
@@ -236,6 +242,9 @@ export default {
         var arrayName = restore.arrayName
         var array = this.root[this.using].items[arrayName]
         array.push(restore)
+
+        Pulse.onItemCreation({ spaceID: this.root.realtime.id, item: restore, arrayName, id: restore.id })
+
         this.message.restoreBox = false
         this.temp.box = false
       }
@@ -256,11 +265,16 @@ export default {
     },
     createNewOnDrop ({ type, rect }) {
       var newItem = false
+      var newPos = this.raycast({ rect })
+      if (newPos.x < 0) {
+        // did not drag to the canvas area
+        return
+      }
       switch (type) {
         case 'textBox':
           newItem = Data.textBox(({ size }) => {
             return {
-              pos: this.raycast({ rect })
+              pos: newPos
             }
           })
           this.root.realtime.items['textBoxes'].push(
@@ -269,7 +283,7 @@ export default {
           break
         case 'drawboard':
           newItem = Data.drawboard({
-            pos: this.raycast({ rect })
+            pos: newPos
           })
           this.root.realtime.items['drawboards'].push(
             newItem
@@ -277,7 +291,7 @@ export default {
           break
         case 'commentBox':
           newItem = Data.commentBox({
-            pos: this.raycast({ rect })
+            pos: newPos
           })
           this.root.realtime.items['commentBoxes'].push(
             newItem

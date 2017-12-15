@@ -16,7 +16,7 @@
       <img src="./img/palette.svg" draggable="false" />
     </div>
     <div class="image-btn" v-touch:tap="pickPhoto">
-      <input type="file" accept="image/x-png,image/gif,image/jpeg" class="hidden" ref="fileupload" @change="onSelectPhoto" />
+      <input type="file" accept="image/x-png,image/png,image/gif,image/jpeg,image/jpg" class="hidden" ref="fileupload" @change="onSelectPhoto" />
       <img src="./img/image.svg" draggable="false" />
     </div>
     <div class="palette" v-if="showPalete">
