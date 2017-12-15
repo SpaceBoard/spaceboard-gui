@@ -85,3 +85,20 @@ export function textBox (configFn) {
     ...configFn({ size })
   }
 }
+
+export function fileBox (config) {
+  var size = require('../FileBox/FileBox.vue').default.info.size
+  return {
+    id: uuid(),
+    ...positioner(),
+    size,
+    arrayName: 'files',
+    component: 'FileBox',
+    data: {
+      fileID: uuid(),
+      status: 'ready-upload',
+      name: `New File`
+    },
+    ...config
+  }
+}

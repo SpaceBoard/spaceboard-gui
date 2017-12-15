@@ -1,3 +1,4 @@
+// import * as Data from './DataStructure'
 import * as network from './Network.js'
 var socket = network.api.socket
 var rest = network.api.rest
@@ -26,15 +27,6 @@ function dataUpdater ({ data, root }) {
     for (var key in data.item) {
       array[index][key] = data.item[key]
     }
-    // var keys = Object.keys[data.item]
-    // keys.filter(k => k === 'data').forEach((key) => {
-    //   array[index][key] = data.item[key]
-    // })
-    // array[index] = {
-    //   ...array[index],
-    //   ...data.item
-    // }
-    // array[index].data = data.item.data
   }
 }
 
@@ -59,7 +51,7 @@ function dataRemover ({ data, root }) {
 //   }
 // }
 
-export function setupRealtimeUpdaters ({ readRoot, writeRoot, $forceUpdate }) {
+export function setupRealtimeUpdaters ({ readRoot, writeRoot, viewAttention, $forceUpdate }) {
   socket.emit('up/join/space', {
     spaceID: readRoot.realtime.id
   })
@@ -74,10 +66,25 @@ export function setupRealtimeUpdaters ({ readRoot, writeRoot, $forceUpdate }) {
       dataRemover({ data, root: readRoot })
     })
   })
+  socket.on(`dn/space@attention`, (data) => {
+    console.log(data)
+    viewAttention(data)
+    $forceUpdate()
+  })
+}
+
+export function onAttention ({ spaceID, attention }) {
+  socket.emit(`up/space@attention`, {
+    spaceID,
+    attention
+  })
 }
 
 export function onItemHydration ({ spaceID }) {
-
+  return rest.get('/api/space/demo')
+    .then((res) => {
+      return res.data
+    })
 }
 
 export function onItemCreation ({ spaceID, item, arrayName, id }) {
@@ -104,5 +111,25 @@ export function onItemPulse ({ spaceID, item, arrayName, id }) {
     arrayName,
     item,
     id
+  })
+}
+
+export function onDownloadFile ({ spaceID, fileID }) {
+  return rest.get(`/api/space/${spaceID}/file/${fileID}`)
+    .then((res) => {
+      return res.data
+    })
+}
+
+export function onUploadFile ({ spaceID, fileID, fileData, onUploadProgress }) {
+  onUploadProgress = onUploadProgress || (() => {})
+  return rest.post(`/api/space/${spaceID}/file`, {
+    spaceID,
+    fileID,
+    fileData
+  }, {
+    onUploadProgress
+  }).then((res) => {
+    return res.data
   })
 }
