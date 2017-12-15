@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <header>
-      <span class="brand"><router-link tag="span" to="/">SpaceBoard</router-link> <span class="app-author">made with love by <a href="https://twitter.com/wonglok831">loklok</a> and <a href="https://k2.digital">k2.digital</a></span></span>
-    </header>
     <router-view></router-view>
   </div>
 </template>

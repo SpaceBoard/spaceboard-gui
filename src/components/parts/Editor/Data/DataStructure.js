@@ -32,8 +32,9 @@ export function makeComment ({ text = 'New Text', uid = 'user1', name = '' }) {
   }
 }
 
-export function commentBox (config = {}) {
+export function commentBox (config = { sampleComments: [] }) {
   var size = require('../CommentBox/CommentBox.vue').default.info.size
+  config.sampleComments = config.sampleComments || []
   return {
     id: uuid(),
     ...positioner(),
@@ -43,9 +44,7 @@ export function commentBox (config = {}) {
     data: {
       title: 'My New CommentBox',
       comments: [
-        makeComment({ name: 'siu ming', uid: 'user1', text: 'How are you?' }),
-        makeComment({ name: 'dai ming', uid: 'user2', text: 'I\'m fine. Thanks!' }),
-        makeComment({ name: 'siu ming', uid: 'user1', text: 'See you around' })
+        ...config.sampleComments
       ]
     },
     ...config

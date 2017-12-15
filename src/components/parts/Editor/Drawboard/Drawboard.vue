@@ -70,6 +70,9 @@ function drawLines ({ ctx, canvas, lines }) {
   }
 }
 
+var tempStore = {
+}
+
 export default {
   props: {
     offsetY: { default: 0 },
@@ -82,6 +85,7 @@ export default {
   data () {
     var self = this
     return {
+      tempStore,
       imageObj: false,
       currentColor: 'green',
       showPalete: false,
@@ -110,6 +114,9 @@ export default {
     }
     self.rAFID = window.requestAnimationFrame(rAF)
     this.dirty = true
+
+    tempStore[this.box.id] = tempStore[this.box.id] || false
+    this.loadPicToCanvas(tempStore[this.box.id])
   },
   beforeDestroy () {
     window.cancelAnimationFrame(this.rAFID)
@@ -155,16 +162,26 @@ export default {
     onSelectPhoto (evt) {
       this.previewPhoto(evt)
     },
+    loadPicToCanvas (link) {
+      if (link) {
+        this.imageObj = new Image()
+        this.imageObj.onload = () => {
+          this.dirty = true
+        }
 
+        this.imageObj.src = link
+      }
+    },
+    resampleDataURL () {
+
+    },
     previewPhoto (evt) {
       var reader = new FileReader()
       reader.onload = (evt) => {
         try {
-          this.imageObj = new Image()
-          this.imageObj.onload = () => {
-            this.dirty = true
-          }
-          this.imageObj.src = reader.result
+          tempStore[this.box.id] = reader.result
+
+          this.loadPicToCanvas(tempStore[this.box.id])
         } catch (e) {
           console.log(e)
         }

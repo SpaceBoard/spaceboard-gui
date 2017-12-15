@@ -49,20 +49,6 @@
 
   </div>
   <div class="toolbar">
-    <input class="scale-ranger" type="range" step="0.000001" min="0.1" max="5" v-model="scaler" />
-    <div>
-      <img src="./img/icon/mark-cam.svg" @click="() => { markCam(); }" />
-      <img src="./img/icon/reset-cam.svg" @click="() => { restoreCam(); }" />
-      <img src="./img/icon/download.svg" @click="() => { saveRoot(); }" />
-    </div>
-    <div>
-      <transition name="fade">
-        <h3 v-if="message.markCam">{{ message.markCam }}</h3>
-      </transition>
-      <transition name="fade">
-        <h3 v-if="message.restoreBox" @click="onBoxRestore()" >{{ message.restoreBox }}<button @click="onBoxRestore()" >Restore</button></h3>
-      </transition>
-    </div>
     <div class="btns">
       <SourceButton @drop="createNewOnDrop" fileType="textBox"> Text Box </SourceButton>
       <SourceButton @drop="createNewOnDrop" fileType="file"> Upload File </SourceButton>
@@ -74,6 +60,23 @@
       <div class="btn btn-movable">Realtime Drawboard <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Comment Box <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Text Box <img class="dragger" src="./img/icons/mover.svg" /></div> -->
+    </div>
+
+    <div class="toolbar-footer">
+       <div class="notifier">
+        <transition name="fade">
+          <h3 v-if="message.markCam">{{ message.markCam }}</h3>
+        </transition>
+        <transition name="fade">
+          <h3 v-if="message.restoreBox" @click="onBoxRestore()" >{{ message.restoreBox }}<button @click="onBoxRestore()" >Restore</button></h3>
+        </transition>
+      </div>
+      <input class="scale-ranger" type="range" step="0.000001" min="0.1" max="5" v-model="scaler" />
+      <div class="tool-bar-icon-set">
+        <img src="./img/icon/mark-cam.svg" @click="() => { markCam(); }" />
+        <img src="./img/icon/reset-cam.svg" @click="() => { restoreCam(); }" />
+        <img src="./img/icon/download.svg" @click="() => { saveRoot(); }" />
+      </div>
     </div>
   </div>
 
@@ -128,9 +131,9 @@ export default {
         x0: 0,
         y0: 0,
         x1: window.innerWidth - 300,
-        y1: window.innerHeight - 56,
+        y1: window.innerHeight - 56 * 0.0,
         offsetX: 300,
-        offsetY: 56
+        offsetY: 56 * 0.0
       },
       cam: {
         pause: false,
@@ -335,7 +338,14 @@ export default {
             Data.textBox(() => { return { pos: { x: 50, y: 50, z: 0 } } })
           ],
           commentBoxes: [
-            Data.commentBox({ pos: { x: 585, y: 30, z: 0 } })
+            Data.commentBox({
+              pos: { x: 585, y: 30, z: 0 },
+              sampleComments: [
+                Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'How are you?' }),
+                Data.makeComment({ name: 'dai ming', uid: 'user2', text: 'I\'m fine. Thanks!' }),
+                Data.makeComment({ name: 'siu ming', uid: 'user1', text: 'See you around~' })
+              ]
+            })
           ]
         }
       }
@@ -462,7 +472,7 @@ input[type=range]::-webkit-slider-thumb {
 .wrapper{
   overflow: hidden;
   position: relative;
-  height: calc(100% - 56px);
+  height: calc(100% - 56px * 0.0);
   width: 100%;
 }
 .toolbar{
@@ -474,11 +484,26 @@ input[type=range]::-webkit-slider-thumb {
   /* background-color: #bababa; */
   border-right: grey solid 1px;
 }
+.toolbar-footer{
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  padding-bottom: 25px;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+}
+.tool-bar-icon-set{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
 .btns{
   flex-wrap: wrap;
   display: flex;
   justify-content: space-around;
   align-items: flex-start;
+  height: 470px;
 }
 .canvas-wrapper{
   overflow: hidden;
@@ -525,6 +550,10 @@ input[type=range]::-webkit-slider-thumb {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0
+}
+
+.notifier{
+  text-align: center;
 }
 
 </style>
