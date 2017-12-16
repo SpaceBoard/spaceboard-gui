@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import debounce from 'debounce'
 import * as Pulse from '../Data/Pulse.js'
 export default {
   props: {
@@ -37,9 +38,10 @@ export default {
             spaceID: this.spaceID,
             fileID: this.box.id,
             fileData,
-            onUploadProgress: (progressEvent) => {
+            onUploadProgress: debounce((progressEvent) => {
               this.box.data.progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            }
+              this.$emit('pulse-update')
+            }, 333)
           })
         })
         .then(() => {
