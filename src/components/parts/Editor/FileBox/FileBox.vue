@@ -43,7 +43,7 @@ export default {
           })
         })
         .then(() => {
-          this.box.data.link = Pulse.getDownloadLink({ fileID: this.box.data.fileID, spaceID: this.spaceID })
+          this.box.data.link = Pulse.getDownloadLink({ fileID: this.box.id, spaceID: this.spaceID })
           this.$emit('pulse-update')
           this.$forceUpdate()
         })
