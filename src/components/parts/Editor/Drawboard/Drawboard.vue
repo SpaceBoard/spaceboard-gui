@@ -32,7 +32,7 @@
 
 <script>
 import * as Pulse from '../Data/Pulse.js'
-
+import dataURLToBlob from 'blueimp-canvas-to-blob'
 var simplify = require('simplify-path')
 function drawImg ({ ctx, canvas, image }) {
   var wrh = image.width / image.height
@@ -170,8 +170,15 @@ export default {
     },
 
     uploadFile (evt) {
-      Promise.resolve(evt.target.files[0])
+      this.readFile(evt)
+        .then((fileStr) => {
+          return this.resampleDataURL(fileStr)
+        })
+        .then((dataURL) => {
+          return dataURLToBlob(dataURL)
+        })
         .then((fileData) => {
+          console.log(fileData)
           return Pulse.onUploadFile({
             spaceID: this.spaceID,
             fileID: this.box.id,
@@ -244,6 +251,21 @@ export default {
         img.src = dataURL
       })
     },
+    readFile (evt) {
+      return new Promise((resolve, reject) => {
+        var reader = new FileReader()
+        reader.onload = (evt) => {
+          try {
+            resolve(reader.result)
+          } catch (e) {
+            console.log(e)
+          }
+        }
+        if (evt.target.files[0]) {
+          reader.readAsDataURL(evt.target.files[0])
+        }
+      })
+    },
     previewPhoto (evt) {
       var reader = new FileReader()
       reader.onload = (evt) => {
@@ -263,6 +285,8 @@ export default {
         reader.readAsDataURL(evt.target.files[0])
       }
     },
+
+    // dataURLtoBlob(imageURL)
 
     setCurrentColor (color) {
       this.currentColor = color
