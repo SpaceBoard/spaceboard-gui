@@ -400,7 +400,8 @@ export default {
         .then((data) => {
           this.root = data
           this.setupPulse()
-          this.zoomIntro()
+          this.restoreCam()
+          // this.zoomIntro()
         })
     },
     zoomIntro () {
