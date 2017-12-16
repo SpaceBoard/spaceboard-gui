@@ -4,7 +4,7 @@
       <div class="text">
         {{ $slots.default[0].text }}
       </div>
-      <img class="dragger" src="./img/mover.svg" />
+      <img class="dragger pulse" :class="{ ['delay-' + index]: true }" src="./img/mover.svg" />
     </div>
     <div class="btn pos-abs" :style="{
       transform: readTransform
@@ -12,7 +12,7 @@
       <div class="text">
         {{ $slots.default[0].text }}
       </div>
-      <img class="dragger" src="./img/mover.svg" ref="dynamic-box" v-touch:pan="(evt) => { panning(evt) }" v-touch:panend="(evt) => { panend(evt, fileType) }" />
+      <img class="dragger pulse" :class="{ ['delay-' + index]: true }" src="./img/mover.svg" ref="dynamic-box" v-touch:pan="(evt) => { panning(evt) }" v-touch:panend="(evt) => { panend(evt, fileType) }" />
     </div>
   </div>
 </template>
@@ -22,6 +22,7 @@ import TWEEN from '@tweenjs/tween.js'
 
 export default {
   props: {
+    index: { default: 0 },
     fileType: {}
   },
   data () {
@@ -84,4 +85,63 @@ export default {
   right: 10px;
   top: 10px;
 }
+
+
+@keyframes tada {
+  from {
+    transform: scale3d(1, 1, 1);
+  }
+
+  10%, 20% {
+    transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg);
+  }
+
+  30%, 50%, 70%, 90% {
+    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
+  }
+
+  40%, 60%, 80% {
+    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
+  }
+
+  to {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+
+@keyframes pulse {
+  from {
+    transform: scale3d(1, 1, 1);
+  }
+
+  50% {
+    transform: scale3d(1.05, 1.05, 1.05);
+  }
+
+  to {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.pulse {
+  animation: pulse 1s cubic-bezier(0.075, 0.82, 0.165, 1) 0s infinite normal both;
+}
+
+.tada {
+  animation: tada 1s cubic-bezier(0.075, 0.82, 0.165, 1) 0s infinite normal both;
+}
+.delay-1{
+  animation-delay: 0.1s;
+}
+.delay-2{
+  animation-delay: 0.2s;
+}
+.delay-3{
+  animation-delay: 0.3s;
+}
+.delay-4{
+  animation-delay: 0.4s;
+}
+
 </style>

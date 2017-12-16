@@ -1,9 +1,10 @@
 <template>
   <div class="box">
     File Box
-    Progress: {{ percentCompleted }}%
+    Progress: {{ box.data.progress }}%
     <input type="file" @change="onFileSelectChange" />
-    <button v-if="box.data.status === 'uploaded'" @click="downloadFile">Download</button>
+    <a :href="box.data.link" v-if="box.data.link">Download</a>
+    <!-- <button @click="downloadFile">Download</button> -->
     <!-- <textarea v-model="downloaded"></textarea> -->
   </div>
 </template>
@@ -17,7 +18,6 @@ export default {
   },
   data () {
     return {
-      percentCompleted: 0,
       status: '',
       downloaded: false
     }
@@ -30,29 +30,30 @@ export default {
       this.uploadFile(evt)
     },
     uploadFile (evt) {
-      this.readDataURI(evt)
-        .then((dataURI) => {
+      Promise.resolve(evt.target.files[0])
+        .then((fileData) => {
+          console.log(fileData)
           return Pulse.onUploadFile({
             spaceID: this.spaceID,
-            fileID: this.box.data.fileID,
-            fileData: dataURI,
+            fileID: this.box.id,
+            fileData,
             onUploadProgress: (progressEvent) => {
-              this.percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              this.box.data.progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
             }
           })
         })
         .then(() => {
-          this.box.data.status = 'uploaded'
-          this.$forceUpdate()
+          this.box.data.link = Pulse.getDownloadLink({ fileID: this.box.data.fileID, spaceID: this.spaceID })
           this.$emit('pulse-update')
+          this.$forceUpdate()
         })
     },
     downloadFile () {
-      return Pulse.onDownloadFile({ spaceID: this.spaceID, fileID: this.box.data.fileID })
-        .then((data) => {
-          // this.downloaded = data
-          this.downloadAction(data)
-        })
+      // return Pulse.onDownloadFile({ spaceID: this.spaceID, fileID: this.box.data.fileID })
+      //   .then((data) => {
+      //     // this.downloaded = data
+      //     this.downloadAction(data)
+      //   })
     },
     base64MimeType (encoded) {
       var result = null
@@ -73,15 +74,16 @@ export default {
       // Replace - with + and _ with /
       return s.replace(/-/g, '+').replace(/_/g, '/')
     },
-    downloadAction (url) {
-      var fileType = this.base64MimeType(url).replace('image/', '')
-      url = url.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
+    downloadAction (url, fileName) {
+      // var extension = this.base64MimeType(url).replace('image/', '')
+      // url = url.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
 
       // var dataStr = url
       // var newBlobURL = URL.createObjectURL(new Blob([dataStr], { type: 'text/json' }))
       var dlAnchorElem = document.createElement('a')
       dlAnchorElem.setAttribute('href', url)
-      dlAnchorElem.setAttribute('download', 'file.' + fileType)
+      // dlAnchorElem.setAttribute('_target', 'blank')
+      dlAnchorElem.setAttribute('download', fileName)
       dlAnchorElem.click()
     },
     readDataURI (evt) {

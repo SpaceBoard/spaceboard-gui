@@ -5,11 +5,13 @@ var isProduction = (process.env.NODE_ENV === 'production')
 
 var socket = io(isProduction ? 'https://spaceboard.herokuapp.com' : 'http://' + window.location.hostname + ':3000')
 
+var baseURL = isProduction ? 'https://spaceboard.herokuapp.com' : 'http://' + window.location.hostname + ':3000'
 var rest = axios.create({
-  baseURL: isProduction ? 'https://spaceboard.herokuapp.com' : 'http://' + window.location.hostname + ':3000'
+  baseURL: baseURL
 })
 
 export const api = {
   socket,
-  rest
+  rest,
+  baseURL
 }

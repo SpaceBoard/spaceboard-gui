@@ -51,10 +51,10 @@
   </div>
   <div class="toolbar">
     <div class="btns">
-      <SourceButton @drop="createNewOnDrop" fileType="drawboard">Picture + Draw </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="commentBox">Comment </SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="textBox">Text</SourceButton>
-      <SourceButton @drop="createNewOnDrop" fileType="file">File</SourceButton>
+      <SourceButton :index="1" @drop="createNewOnDrop" fileType="drawboard">Picture + Draw </SourceButton>
+      <SourceButton :index="2" @drop="createNewOnDrop" fileType="commentBox">In Place Chat</SourceButton>
+      <SourceButton :index="3" @drop="createNewOnDrop" fileType="textBox">Text Annotation</SourceButton>
+      <SourceButton :index="4" @drop="createNewOnDrop" fileType="file">File</SourceButton>
       <!-- <div class="btn btn-movable">Upload File <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Picture + Annotation <img class="dragger" src="./img/icons/mover.svg" /></div>
       <div class="btn btn-movable">Realtime Drawboard <img class="dragger" src="./img/icons/mover.svg" /></div>
@@ -276,10 +276,10 @@ export default {
     createNewOnDrop ({ type, rect }) {
       var newItem = false
       var newPos = this.raycast({ rect })
-      if (newPos.x < 0) {
-        // did not drag to the canvas area
-        return
-      }
+      // if (newPos.x < 0) {
+      //   // did not drag to the canvas area
+      //   return
+      // }
       switch (type) {
         case 'textBox':
           newItem = Data.textBox(({ size }) => {
@@ -474,7 +474,9 @@ export default {
     this.$refs['canvas-wrapper'].addEventListener('wheel', (evt) => {
       if (evt.altKey) {
       } else if (this.hover) {
-
+        evt.preventDefault()
+        this.cam._x -= (evt.deltaX / this.scaler)
+        this.cam._y -= (evt.deltaY / this.scaler)
       } else {
         evt.preventDefault()
         this.cam._x -= (evt.deltaX / this.scaler)
@@ -604,5 +606,6 @@ input[type=range]::-webkit-slider-thumb {
 .notifier{
   text-align: center;
 }
+
 
 </style>

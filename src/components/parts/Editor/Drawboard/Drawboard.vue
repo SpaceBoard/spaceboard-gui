@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import * as Pulse from '../Data/Pulse.js'
+
 var simplify = require('simplify-path')
 function drawImg ({ ctx, canvas, image }) {
   var wrh = image.width / image.height
@@ -75,6 +77,7 @@ var tempStore = {
 
 export default {
   props: {
+    spaceID: { default: 'demo' },
     offsetY: { default: 0 },
     cam: {},
     box: {},
@@ -99,6 +102,9 @@ export default {
     }
   },
   computed: {
+    imgLink () {
+      return this.box.data.imgLink
+    },
     undoData () {
       return this.box.data.undo
     }
@@ -116,12 +122,26 @@ export default {
     this.dirty = true
 
     tempStore[this.box.id] = tempStore[this.box.id] || false
-    this.loadPicToCanvas(tempStore[this.box.id])
+    if (tempStore[this.box.id]) {
+      this.loadPicToCanvas(tempStore[this.box.id])
+    } else if (this.box.data.imgLink) {
+      setTimeout(() => {
+        this.resampleDataURL(this.box.data.imgLink)
+          .then((dataURL) => {
+            tempStore[this.box.id] = dataURL
+
+            this.loadPicToCanvas(dataURL)
+          })
+      }, 1000)
+    }
   },
   beforeDestroy () {
     window.cancelAnimationFrame(this.rAFID)
   },
   watch: {
+    imgLink () {
+      this.loadSavedImgae()
+    },
     box () {
       this.dirty = true
     },
@@ -149,22 +169,57 @@ export default {
       }
     },
 
-    pickPhoto (evt) {
-      this.cancelImage()
-      this.$refs['fileupload'].click()
+    uploadFile (evt) {
+      Promise.resolve(evt.target.files[0])
+        .then((fileData) => {
+          return Pulse.onUploadFile({
+            spaceID: this.spaceID,
+            fileID: this.box.id,
+            fileData,
+            onUploadProgress: (progressEvent) => {
+              this.box.data.progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            }
+          })
+        })
+        .then(() => {
+          this.box.data.imgLink = Pulse.getDownloadLink({ spaceID: this.spaceID, fileID: this.box.id }) + '?r=' + Math.random()
+          this.loadSavedImgae()
+          this.$emit('pulse-update')
+        })
     },
 
+    loadSavedImgae () {
+      if (this.box.data.imgLink) {
+        this.resampleDataURL(this.box.data.imgLink)
+          .then((dataURL) => {
+            tempStore[this.box.id] = dataURL
+            this.loadPicToCanvas(dataURL)
+            this.dirty = true
+            this.$forceUpdate()
+          })
+      } else {
+        this.cancelImage()
+      }
+    },
+
+    pickPhoto () {
+      this.$refs['fileupload'].click()
+    },
+    // shared
     cancelImage () {
+      this.box.data.imgLink = false
       this.imageObj = false
       this.dirty = true
     },
 
     onSelectPhoto (evt) {
+      this.uploadFile(evt)
       this.previewPhoto(evt)
     },
     loadPicToCanvas (link) {
       if (link) {
         this.imageObj = new Image()
+        this.imageObj.crossOrigin = true
         this.imageObj.onload = () => {
           this.dirty = true
         }
@@ -180,6 +235,7 @@ export default {
         var ctx = newCanvas.getContext('2d')
 
         var img = new Image()
+        img.crossOrigin = true
         img.onload = () => {
           drawImg({ ctx, canvas: newCanvas, image: img })
           var png = newCanvas.toDataURL('image/png')

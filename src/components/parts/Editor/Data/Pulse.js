@@ -114,20 +114,25 @@ export function onItemPulse ({ spaceID, item, arrayName, id }) {
   })
 }
 
+export function getDownloadLink ({ spaceID, fileID }) {
+  return network.api.baseURL + `/api/space/${spaceID}/file/${fileID}`
+}
+
 export function onDownloadFile ({ spaceID, fileID }) {
   return rest.get(`/api/space/${spaceID}/file/${fileID}`)
     .then((res) => {
+      console.log(res)
       return res.data
     })
 }
 
 export function onUploadFile ({ spaceID, fileID, fileData, onUploadProgress }) {
   onUploadProgress = onUploadProgress || (() => {})
-  return rest.post(`/api/space/${spaceID}/file`, {
-    spaceID,
-    fileID,
-    fileData
-  }, {
+
+  var data = new FormData()
+  data.append('media', fileData)
+
+  return rest.post(`/api/space/${spaceID}/file/${fileID}`, data, {
     onUploadProgress
   }).then((res) => {
     return res.data

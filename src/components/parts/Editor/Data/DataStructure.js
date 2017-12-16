@@ -95,9 +95,8 @@ export function fileBox (config) {
     arrayName: 'files',
     component: 'FileBox',
     data: {
-      fileID: uuid(),
-      status: 'ready-upload',
-      name: `New File`
+      progress: 0,
+      link: false
     },
     ...config
   }
