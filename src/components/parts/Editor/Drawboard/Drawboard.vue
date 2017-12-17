@@ -132,7 +132,7 @@ export default {
 
             this.loadPicToCanvas(dataURL)
           })
-      }, 1000)
+      }, 100)
     }
   },
   beforeDestroy () {
