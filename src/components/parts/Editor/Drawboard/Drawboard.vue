@@ -26,6 +26,13 @@
       <div class="colorbox black"  @click="setCurrentColor('black')"></div>
       <div class="colorbox purple"  @click="setCurrentColor('purple')"></div>
       <div class="colorbox gold"  @click="setCurrentColor('gold')"></div>
+
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(0,255,255,0.5)' }" @click="setCurrentColor('rgba(0,255,255,0.5)', 10)"></div>
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(255,255,0,0.5)' }" @click="setCurrentColor('rgba(255,255,0,0.5)', 10)"></div>
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(255,0,255,0.5)' }" @click="setCurrentColor('rgba(255,0,255,0.5)', 10)"></div>
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(255,0,0,0.5)' }" @click="setCurrentColor('rgba(255,0,0,0.5)', 10)"></div>
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(0,255,0,0.5)' }" @click="setCurrentColor('rgb(0,255,0,0.5)', 10)"></div>
+      <div class="colorbox" :style="{ backgroundColor: 'rgba(0,0,255,0.5)' }" @click="setCurrentColor('rgba(0,0,255,0.5)', 10)"></div>
     </div>
   </div>
 </template>
@@ -288,7 +295,8 @@ export default {
 
     // dataURLtoBlob(imageURL)
 
-    setCurrentColor (color) {
+    setCurrentColor (color, lineWidth) {
+      this.currentLineWidth = lineWidth || 1.5
       this.currentColor = color
       this.showPalete = false
     },
@@ -479,6 +487,7 @@ export default {
   display: inline-block;
   width: 30px;
   height: 30px;
+  border-radius: 50%;
 }
 .red{
   background-color: red;
